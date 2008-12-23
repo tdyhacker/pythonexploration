@@ -8,6 +8,7 @@ from helloworld.model import meta
 
 # All of the tables
 from helloworld.model import link_table
+from helloworld.model import tags_table
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model."""
