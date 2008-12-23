@@ -2,19 +2,31 @@ from time import strftime
 from re import compile
 
 from sqlalchemy import create_engine, Table, Column, MetaData, ForeignKey, and_, or_, ForeignKey
-from sqlalchemy.types import DateTime, String, Integer, Boolean
+from sqlalchemy.types import DateTime, String, Integer, Boolean, Text
 from sqlalchemy.orm import mapper, sessionmaker, clear_mappers, relation, scoped_session
 
-from helloworld.model import meta
+from helloworld.model.meta import *
 
-links_table = Table("Saved_links", meta.metadata,
+from helloworld.model.tags_table import *
+
+#links_table = Table("Saved_links_old", meta.metadata,
+#                        Column("id", Integer, primary_key=True),
+#                        Column("notes", String(512)), # text
+#                        Column("link", String(512)), # text
+#                        Column("tags", String(128)), # text
+#                        Column("addtime", String(32)), # datetime
+#                        Column("inatime", String(32)), # datetime
+#                        Column("modtime", String(32)), # datetime
+#                        Column("active", Boolean()))
+
+links_table = Table("Saved_links", metadata,
                         Column("id", Integer, primary_key=True),
-                        Column("notes", String(512)), # text
-                        Column("link", String(512)), # text
-                        Column("tags", String(128)), # text
-                        Column("addtime", String(32)), # datetime
-                        Column("inatime", String(32)), # datetime
-                        Column("modtime", String(32)), # datetime
+                        Column("notes", Text), # text
+                        Column("link", Text), # text
+                        Column("tags", Integer, ForeignKey("link_xref_tag.link_id")), # text
+                        Column("addtime", Text), # datetime
+                        Column("inatime", Text), # datetime
+                        Column("modtime", Text), # datetime
                         Column("active", Boolean()))
 
 class Links(object):
@@ -86,7 +98,7 @@ class Links(object):
         return edited
     
     def getTags(self):
-        return self.tags
+        return "oops"
     
     def parseTags(self):
         return compile('(\S\w*)').findall(self.tags)

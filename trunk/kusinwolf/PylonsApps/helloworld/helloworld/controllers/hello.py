@@ -9,8 +9,8 @@ from math import floor, ceil
 from helloworld.lib.base import *
 
 from helloworld.model import meta
-from helloworld.model.link_table import Links
-from helloworld.model.link_table import links_table
+from helloworld.model.link_table import *
+from helloworld.model.tags_table import *
 from helloworld.lib import libtool
 
 log = logging.getLogger(__name__)
