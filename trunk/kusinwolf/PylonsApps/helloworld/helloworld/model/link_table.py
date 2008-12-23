@@ -23,14 +23,13 @@ links_table = Table("Saved_links", metadata,
                         Column("id", Integer, primary_key=True),
                         Column("notes", Text), # text
                         Column("link", Text), # text
-                        Column("tags", Integer, ForeignKey("link_xref_tag.link_id")), # text
                         Column("addtime", Text), # datetime
                         Column("inatime", Text), # datetime
                         Column("modtime", Text), # datetime
                         Column("active", Boolean()))
 
 class Links(object):
-    def __init__(self, link, notes=None, tags=None, active=True):
+    def __init__(self, link, notes=None, active=True):
         self.link = None        # Name
         self.setLink(link)
         self.notes = None      # Notes
