@@ -2,33 +2,40 @@ from random import Random
 from datetime import datetime
 
 class Master:
+    # Private Globals
+    __info = "release_date(year.month.day)\nversion(year.month)\nmodified(year.month.day)\nUbuntu Style version control"
+    __modified = '9.1.9'
+    __release_date = '0.0.0'
+    __version = '9.1'
+    __ids = 10000
+    
     def __init__(self):
-        self.info = "release_date(year.month.day)\nversion(year.month)\nmodified(year.month.day)\nUbuntu Style version control"
-        self.modified = '9.1.8'
-        self.release_date = '0.0.0'
-        self.version = '9.1'
-        
-        self.ids = 10000
+        self.attributes = {'program': self._program()}
     
     def __repr__(self):
-        return self.program()
+        return self._program()
     
-    def getID(self):
-        self.ids += 1
-        return "PLAYER_%s:%s" % (int(self.ids / 10000) - 1, self.ids % 10000)
+    def _playergetID(self):
+        if not self.__class__ == Player().__class__:
+            self.__ids += 1
+            return "PLAYER_%s:%s" % (int(self.__ids / 10000) - 1, self.__ids % 10000)
+        else:
+            return "Unknown" # The Game is the only one that is allowed to assign IDs
     
-    def program(self):
-        return "<Version: %7s\t- Modified: %7s\t- Released: %7s>" % (self.version, self.modified, self.release_date)
-
+    def _program(self):
+        return "<Version: %7s\t- Modified: %7s\t- Released: %7s>" % (self.__version, self.__modified, self.__release_date)
+    
 class Roulette(Master):
     def __init__(self):
         self.playercount = 0
-        self.group = []
-        self.wheel = Dice(1,38)
+        self.__group = []
+        self.__wheel = Dice(1,38)
+        
+        self.__verbose = False
         
         self.selection = {
-                '0': 0,
-                '00': 37,
+                '0': [0,],
+                '00': [37,],
                 '1-18': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                 '19-36': [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
                 '1st12': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
@@ -55,11 +62,11 @@ class Roulette(Master):
                 'row8': (22, 23, 24),
                 'row9': (25, 26, 27),
                 'straight up': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36] }
-        self.payout = {
+        self.__payout = {
                 '0': 35,
                 '00': 35,
-                'Straight up': 35,
-                'Row 00': 17,
+                'straight up': 35,
+                'row 00': 17,
                 'row1': 11,
                 'row10': 11,
                 'row11': 11,
@@ -88,67 +95,110 @@ class Roulette(Master):
         print "Playing Roulette :D"
     
     def __repr__(self):
-        return "<Game: Roulette - Players: %s - Online: %s>" % (self.playercount, self.group)
+        return "<Roulette| PlayerCount: %s>" % (self.playercount)
 
     def playerJoin(self, player):
-        if not player in self.group:
+        if not player in self.__group:
+            # Client
             player.game = self
+            player.id = self._playergetID()
+            player.Information['Roulette'] = {}
+            # Server
             self.playercount += 1
-            self.group.append(player)
+            self.__group.append(player)
         else:
             self.playerLeave(player)
             self.playerJoin(player)
     
     def playerLeave(self, player):
-        if player in self.group:
+        if player in self.__group:
+            # Client
             player.game = None
+            player.id = "Unknown"
+            del player.Information['Roulette']
+            player.reset(2)
+            # Server
             self.playercount -= 1
-            self.group.remove(player)
+            self.__group.remove(player)
         else:
             print "Player has already left"
     
-    def playerWinnings(self, player, won):
+    def playerMethod(self, player):
+        '''
+        Methods
+        --------
+        [Progression]
+            Martingale
+            Labouchere - roulette games
+            D'Alembert
+        [Staking Systems]
+            Follow the Shoe
+            Avant Dernier
+            Regression Modelling
+        '''
+        meth = player.method.lower()
+        if meth == 'martingale':
+            player.martingale()
+        elif meth == 'labouchere':
+            player.labouchere()
+        elif meth == 'dalembert':
+            player.dalembert()
+        else:
+            player.martingale() # simplest type
+    
+    def __playerWinnings(self, player, won):
         if won:
-            player.money += player.bet * self.payout[player.additionalInformation['BettingName']]
-            player.exchange += player.bet * self.payout[player.additionalInformation['BettingName']]
-            player.additionalInformation['won'] = True
+            player.money += player.bet * self.__payout[player.Information['Roulette']['BettingName']]
+            player.exchange += player.bet * self.__payout[player.Information['Roulette']['BettingName']]
+            player.Information['won'] = True
         else:
             player.money -= player.bet
             player.exchange -= player.bet
-            player.additionalInformation['won'] = False
-        player.options[player.method]
+            player.Information['won'] = False
+        self.playerMethod(player)
 
     def play(self):
-        while self.playercount: # has numbers
-            landed = self.wheel.roll() - 1 # making it [0:37] 0 = 0, 37 = 00
-            for player in self.group:
-                if landed in player.additionalInformation['BettingNumber']:
-                    self.playerWinnings(player, True)
+        landed = self.__wheel.roll() - 1 # making it [0:37] 0 = 0, 37 = 00
+        for player in self.__group:
+            if player.plays <= 0 or player.money <= 0:
+                if self.__verbose:
+                    print "Player %s has" % player.name,
+                    if player.plays <= 0:
+                        print "quit"
+                    else:
+                        print "gone broke"
+                self.playerLeave(player)
+            else:
+                self.playerBet(player)
+                player.plays -= 1
+                player.Information['Roulette']['Winner'] = landed
+                if landed in player.Information['Roulette']['BettingNumber']:
+                    self.__playerWinnings(player, True)
                 else:
-                    self.playerWinnings(player, False)
+                    self.__playerWinnings(player, False)
+            player.setCurrent() # update no matter what
 
 
     def playerBet(self, player):
-        if player.stratpoint < Random(datetime.now()).random(): # If they change their mind on their betting number
-            player.additionalInformation['BettingName'] = self.selection.keys()[int( len(self.selection.keys()) * Random(datetime.now()).random() )]
-            if player.additionalInformation['BettingName'] != 'straight up':
-                player.additionalInformation['BettingNumber'] = self.selection[player.additionalInformation['BettingName']]
+        if player.stratpoint < Random(datetime.now()).random() or not player.Information['Roulette'].has_key('BettingName'): # If they change their mind on their betting number
+            player.Information['Roulette']['BettingName'] = self.selection.keys()[int( len(self.selection.keys()) * Random(datetime.now()).random() )]
+            if player.Information['Roulette']['BettingName'] != 'straight up':
+                player.Information['Roulette']['BettingNumber'] = self.selection[player.Information['Roulette']['BettingName']]
             else: # This is if it's a single number
-                player.additionalInformation['BettingNumber'] = [self.selection['straight up'][int( len(self.selection['straight up']) * Random(datetime.now()).random() )],]
+                player.Information['Roulette']['BettingNumber'] = [self.selection['straight up'][int( len(self.selection['straight up']) * Random(datetime.now()).random() )],]
 
 
 class Player(Master):
     def __init__(self, **kw):
-        self.rand = Random()
-        self.rand.seed(datetime.now())
+        self.rand = Random(datetime.now())
         
-        self.successrate = successrate # default is 50% of the time
+        self.successrate = 0.5 # default is 50% of the time
         
         # Default mode
         self.name = 'Bob'
-        self.id = self.getID()
-        self.additionspan = self.rand() # How long they'll spend playing the game
-        self.stratpoint = self.rand() # How llong they'll spend using the same stradegy lower number is shorter
+        self.id = "Unknown" # Assigned by Game
+        self.attentionspan = self.rand.random() # How long they'll spend playing the game
+        self.stratpoint = self.rand.random() # How llong they'll spend using the same stradegy lower number is shorter
         # Always changes
         self.bet = 10
         
@@ -157,29 +207,17 @@ class Player(Master):
         
         ## Never touched by the player
         self.exchange = 0
-        self.money = 20000
+        self.money = 500
         ##
         
-        self.plays = 20
+        self.plays = 20 # Number of times they'll play before they just quit playing all together
         self.method = 'Martingale'
-        self.options = {'Martingale': self.martingale(), 'Labouchere': self.labouchere()}
-        self.game = None
-        if kw:
-            self.additionalInformation = kw
-        else:
-            self.additionalInformation = {}
+        self.game = None # Assigned by Game
         
-        self.additionalInformation['starterbet'] = self.bet
-        #Methods
-        #--------
-        #[Progression]
-            #Martingale
-            #Labouchere - roulette games
-            #D'Alembert
-        #[Staking Systems]
-            #Follow the Shoe
-            #Avant Dernier
-            #Regression Modelling
+        if kw:
+            self.Information = kw
+        else:
+            self.Information = {}
         
         # Enhanced mode
         if kw.has_key('bet') and kw['bet']:
@@ -194,14 +232,92 @@ class Player(Master):
             self.plays = kw['plays']
         if kw.has_key('method') and kw['method']:
             self.method = kw['method']
+        if kw.has_key('name') and kw['name']:
+            self.name = kw['name']
+        
+        self.Information['starterbet'] = self.bet
+        
+        # Saving all old information for resetting purposes
+        self.Information['originalInfo'] = {}
+        self.Information['originalInfo']['bet'] = self.bet
+        self.Information['originalInfo']['successrate'] = self.successrate
+        self.Information['originalInfo']['name'] = self.name
+        self.Information['originalInfo']['id'] = self.id
+        self.Information['originalInfo']['attentionspan'] = self.attentionspan
+        self.Information['originalInfo']['wins'] = self.wins
+        self.Information['originalInfo']['losses'] = self.losses
+        self.Information['originalInfo']['exchange'] = self.exchange
+        self.Information['originalInfo']['money'] = self.money # statistical only
+        self.Information['originalInfo']['plays'] = self.plays
+        self.Information['originalInfo']['method'] = self.method
+        
+        self.setCurrent()
+    
+    def setCurrent(self):
+        self.Information['current'] = {}
+        self.Information['current']['bet'] = self.bet
+        self.Information['current']['successrate'] = self.successrate
+        self.Information['current']['name'] = self.name
+        self.Information['current']['id'] = self.id
+        self.Information['current']['attentionspan'] = self.attentionspan
+        self.Information['current']['wins'] = self.wins
+        self.Information['current']['losses'] = self.losses
+        self.Information['current']['exchange'] = self.exchange
+        self.Information['current']['money'] = self.money # statistical only
+        self.Information['current']['plays'] = self.plays
+        self.Information['current']['method'] = self.method
+        self.Information['current']['game'] = self.game
 
     def __repr__(self):
-        return "<Player: %s - ID: %s - Money: %s - TotalExchange: %s - Wins: %s - Losses: %s>" % (self.name, self.id, self.money, self.totalExchange, self.numberOfWins, self.numberOfLosses)
+        return "<Player| Name: %s - ID: %s - Money: %s - TotalExchange: %s - Wins: %s - Losses: %s>>" % (self.name, self.id, self.money, self.exchange, self.wins, self.losses)
+    
+    def reset(self, flags=0):
+        '''
+            Flags:  What happens
+            0/1:    Standard
+            2:      Statistics
+            4:      Name
+            8:      None
+            16:     None
+            32:     None
+            64:     None
+            128:    None
+            256:    None
+            512:    None
+            1024:   None
+            2048:   None
+            4096:   None
+            Full:   8191 // Anything more will evaluate all flags
+            Any Combination of these will evaluate the respected flags
+        '''
+        # if any flag
+        self.bet = self.Information['originalInfo']['bet']
+        self.successrate = self.Information['originalInfo']['successrate']
+        self.plays = self.Information['originalInfo']['plays']
+        self.attentionspace = self.Information['originalInfo']['attentionspan']
+        self.method = self.Information['originalInfo']['method']
+        
+        if (flags - 4) >= 0:
+            flags -= 4
+            self.name = self.Information['originalInfo']['name']
+        if (flags - 2) >= 0:
+            flags -= 2
+            self.wins = self.Information['originalInfo']['wins']
+            self.losses = self.Information['originalInfo']['losses']
+            self.exchange = self.Information['originalInfo']['exchange']
+        
+        self.setCurrent()
 
     def continuePlaying(self):
         if self.game:
             if self.additionspan < self.rand():
-                self.game.playerLeave(self) # Quit the game
+                self.quit() # Quit the game
+    
+    def quit(self):
+        if self.game:
+            self.game.playerLeave(self) # Quit the game
+        else:
+            "/quit Life"
     
     def Labouchere(self):
         self.dice.die = 1 # only need one
@@ -227,13 +343,14 @@ class Player(Master):
                 else:
                     self.bettingNumbers.append(2)
 
-    def martingale(self, **ikw):
-        if not self.additionalInformation['won']:
-            self.losses += 1
-            self.bet *= 2
-        else:
-            self.wins += 1
-            self.bet = self.additionalInformation['starterbet']
+    def martingale(self):
+        if self.Information.has_key('won'):
+            if not self.Information['won']:
+                self.losses += 1
+                self.bet *= 2
+            else:
+                self.wins += 1
+                self.bet = self.Information['starterbet']
 
 class Dice(Master):
     
@@ -275,5 +392,45 @@ class Dice(Master):
     #Follow the Shoe
     #Avant Dernier
     #Regression Modelling
+m = Master()
+d = Dice()
+r = Roulette()
+p = []
+for a in range(10):
+    p.append(Player(name='%s' % a))
+    r.playerJoin(p[a])
 
+round = 1
 
+while r.playercount:
+    #print "Round %s" % round
+    r.play()
+    
+    #for player in p:
+    #    if player.game:
+    #        print "Player %s" % player.name,
+    #        if player.Information['won']:
+    #            print "won on %s" % (player.Information['Roulette']['Winner'])
+    #        else:
+    #            print "lost"
+    round += 1
+    
+if False:
+    
+    class Statistics:
+        min = 0
+        max = 0
+    s = Statistics()
+    
+    print "Rounds Done %s" % round
+    print "\n"
+    
+    for player in p:
+        if player.money > s.max:
+            s.max = player.money
+        elif player.money < s.min:
+            s.min = player.money
+        print "Player %s has $%s" % (player.name, player.money)
+    
+    print "Min: $%s" % s.min
+    print "Max: $%s" % s.max
