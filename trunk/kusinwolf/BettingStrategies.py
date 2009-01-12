@@ -30,6 +30,7 @@ class Roulette(Master):
         self.playercount = 0
         self.__group = []
         self.__wheel = Dice(1,38)
+        self.__ranks = {}
         
         self.__verbose = False
         
@@ -92,7 +93,7 @@ class Roulette(Master):
                 '1-18': 1,
                 '19-36': 1 }
         
-        print "Playing Roulette :D"
+        self.tag = "Roulette"
     
     def __repr__(self):
         return "<Roulette| PlayerCount: %s>" % (self.playercount)
@@ -102,24 +103,27 @@ class Roulette(Master):
             # Client
             player.game = self
             player.id = self._playergetID()
-            player.Information['Roulette'] = {}
+            player.Information[self.tag] = {}
+            player.Information[self.tag]['Rank'] = len(self.__ranks) + 1
             # Server
             self.playercount += 1
             self.__group.append(player)
+            self.__ranks[self.__ranks + 1] = player
         else:
             self.playerLeave(player)
             self.playerJoin(player)
     
     def playerLeave(self, player):
         if player in self.__group:
-            # Client
-            player.game = None
-            player.id = "Unknown"
-            del player.Information['Roulette']
-            player.reset(2)
             # Server
             self.playercount -= 1
             self.__group.remove(player)
+            self.__ranks[player.Information]
+            # Client
+            player.game = None
+            player.id = "Unknown"
+            del player.Information[self.tag]
+            player.reset(2)
         else:
             print "Player has already left"
     
@@ -156,6 +160,10 @@ class Roulette(Master):
             player.exchange -= player.bet
             player.Information['won'] = False
         self.playerMethod(player)
+    
+    def __evaluateRanks(self):
+        for player in self.__group:
+            for rank in range(1, a.keys()[len(a.keys())])
 
     def play(self):
         landed = self.__wheel.roll() - 1 # making it [0:37] 0 = 0, 37 = 00
@@ -179,14 +187,10 @@ class Roulette(Master):
             player.setCurrent() # update no matter what
 
 
-    def playerBet(self, player):
-        if player.stratpoint < Random(datetime.now()).random() or not player.Information['Roulette'].has_key('BettingName'): # If they change their mind on their betting number
-            player.Information['Roulette']['BettingName'] = self.selection.keys()[int( len(self.selection.keys()) * Random(datetime.now()).random() )]
-            if player.Information['Roulette']['BettingName'] != 'straight up':
-                player.Information['Roulette']['BettingNumber'] = self.selection[player.Information['Roulette']['BettingName']]
-            else: # This is if it's a single number
-                player.Information['Roulette']['BettingNumber'] = [self.selection['straight up'][int( len(self.selection['straight up']) * Random(datetime.now()).random() )],]
-
+    def playerBet(self, player, amount, selection, **kw):
+        player.changemind()
+        player.Information[self.tag]['BettingName'] = selection
+        player.Information[self.tag]['BettingNumber'] = self.selection[selection]
 
 class Player(Master):
     def __init__(self, **kw):
@@ -271,6 +275,14 @@ class Player(Master):
     def __repr__(self):
         return "<Player| Name: %s - ID: %s - Money: %s - TotalExchange: %s - Wins: %s - Losses: %s>>" % (self.name, self.id, self.money, self.exchange, self.wins, self.losses)
     
+    def changemind(self):
+        if self.stratpoint < Random(datetime.now()).random() or not self.Information[game.tag].has_key('BettingName'): # If they change their mind on their betting number
+            self.Information[game.tag]['BettingName'] = self.game.selection.keys()[int( len(self.selection.keys()) * Random(datetime.now()).random() )]
+            if self.Information[game.tag]['BettingName'] != 'straight up':
+                self.Information[game.tag]['BettingNumber'] = self.game.selection[self.Information[game.tag]['BettingName']]
+            else: # This is if it's a single number
+                self.Information[game.tag]['BettingNumber'] = [self.game.selection['straight up'][int( len(self.game.selection['straight up']) * Random(datetime.now()).random() )],]
+    
     def reset(self, flags=0):
         '''
             Flags:  What happens
@@ -297,6 +309,8 @@ class Player(Master):
         self.attentionspace = self.Information['originalInfo']['attentionspan']
         self.method = self.Information['originalInfo']['method']
         
+        if flags > 6: # Currently I do not have anything above 6, so anything higher is useless
+            flags = 0
         if (flags - 4) >= 0:
             flags -= 4
             self.name = self.Information['originalInfo']['name']
