@@ -21,21 +21,19 @@ from helloworld.model.tags_table import *
 
 links_table = Table("Saved_links", metadata,
                         Column("id", Integer, primary_key=True),
-                        Column("notes", Text), # text
-                        Column("link", Text), # text
+                        Column("notes", Text),
+                        Column("link", Text),
                         Column("addtime", Text), # datetime
                         Column("inatime", Text), # datetime
                         Column("modtime", Text), # datetime
                         Column("active", Boolean()))
 
 class Links(object):
-    def __init__(self, link, notes=None, active=True):
+    def __init__(self, link, notes=None, tags=None, active=True):
         self.link = None        # Name
         self.setLink(link)
         self.notes = None      # Notes
         self.setNotes(notes)
-        self.tags = None        # Tags
-        self.setTags(tags)
         # Contains the time it was added, it is not a passable value, time should be absolut
         #self.addtime = datetime.datetime.now()
         self.addtime = strftime("%b %d %Y - %H:%M:%S")
@@ -88,19 +86,13 @@ class Links(object):
         return self.notes
     
     def setTags(self, tags = None):
-        edited = False
-        
-        if self.tags != tags and tags != None:
-            self.tags = str(tags).lower()
-            edited = True
-        
-        return edited
+        return False
     
     def getTags(self):
-        return "oops"
+        return 'some tags?'
     
     def parseTags(self):
-        return compile('(\S\w*)').findall(self.tags)
+        return ['oohh', 'a', 'list', 'of', 'nothing!']
     
     def setActivity(self, act):
         edited = False
@@ -109,13 +101,17 @@ class Links(object):
             act = True
         elif act == "False":
             act = False
+        elif act == True:
+            act = True
+        elif act == False:
+            act = False
         else:
             print "Wrong arguments, boolean or string equivalent comparisons"
             return False
             
         if self.active != act:
-                self.active = act
-                edited = True
+            self.active = act
+            edited = True
         
         return edited
     
