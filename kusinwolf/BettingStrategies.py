@@ -1,10 +1,49 @@
 from random import Random
 from datetime import datetime
+import unittest
+
+#class TestSequenceFunctions(unittest.TestCase):
+#
+#    # Hook function designed to be overloaded for each function's test requirements
+#    def setUp(self):
+#        self.seq = range(10)
+#
+#    # All test functions must start with the name test* and can be named anything else afterwards
+#    def testshuffle(self): # Random test 1
+#        # make sure the shuffled sequence does not lose any elements
+#        random.shuffle(self.seq)
+#        self.seq.sort()
+#        self.assertEqual(self.seq, range(10)) # Raised to check for an expected result
+#
+#    def testchoice(self): # Random test 2
+#        element = random.choice(self.seq)
+#        self.assert_(element in self.seq) # Raised to verify a condition
+#
+#    def testsample(self): # Random test 3
+#        self.assertRaises(ValueError, random.sample, self.seq, 20)
+#        for element in random.sample(self.seq, 5):
+#            self.assert_(element in self.seq) # Raised to verify a condition
+#
+#def buildsuite():
+#    '''
+#        If a specific order is required, or a pair of functions that need to be tested together
+#    '''
+#    tests = ['testshuffle', 'testchoice', 'testsample']
+#
+#    return unittest.TestSuite(map(TestSequenceFunctions,
+#                                  ['testshuffle', 'testchoice', 'testsample']
+#                                 )
+#                             )
+#
+## This is used for finer ouput on each test
+#suite = unittest.TestLoader().loadTestsFromTestCase(TestSequenceFunctions) # Simple way of building all the test cases
+#asuite = buildsuite()
+#unittest.TextTestRunner(verbosity=2).run(suite)
 
 class Master:
     # Private Globals
     __info = "release_date(year.month.day)\nversion(year.month)\nmodified(year.month.day)\nUbuntu Style version control"
-    __modified = '9.1.9'
+    __modified = '9.1.14'
     __release_date = '0.0.0'
     __version = '9.1'
     __ids = 10000
@@ -23,7 +62,7 @@ class Master:
             return "Unknown" # The Game is the only one that is allowed to assign IDs
     
     def _program(self):
-        return "<Version: %7s\t- Modified: %7s\t- Released: %7s>" % (self.__version, self.__modified, self.__release_date)
+        return "<Version: %7s - Modified: %7s - Released: %7s>" % (self.__version, self.__modified, self.__release_date)
     
 class Roulette(Master):
     def __init__(self):
@@ -51,17 +90,17 @@ class Roulette(Master):
                 'odd': [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35],
                 'red': [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
                 'row 00': [0, 37],
-                'row1': (1, 2, 3),
-                'row10': (28, 29, 30),
-                'row11': (31, 32, 33),
-                'row2': (4, 5, 6),
-                'row3': (7, 8, 9),
-                'row4': (10, 11, 12),
-                'row5': (13, 14, 15),
-                'row6': (16, 17, 18),
-                'row7': (19, 20, 21),
-                'row8': (22, 23, 24),
-                'row9': (25, 26, 27),
+                'row1': [1, 2, 3],
+                'row10': [28, 29, 30],
+                'row11': [31, 32, 33],
+                'row2': [4, 5, 6],
+                'row3': [7, 8, 9],
+                'row4': [10, 11, 12],
+                'row5': [13, 14, 15],
+                'row6': [16, 17, 18],
+                'row7': [19, 20, 21],
+                'row8': [22, 23, 24],
+                'row9': [25, 26, 27],
                 'straight up': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36] }
         self.__payout = {
                 '0': 35,
@@ -108,7 +147,7 @@ class Roulette(Master):
             # Server
             self.playercount += 1
             self.__group.append(player)
-            self.__ranks[self.__ranks + 1] = player
+            self.__ranks[len(self.__ranks) + 1] = player
         else:
             self.playerLeave(player)
             self.playerJoin(player)
@@ -118,7 +157,7 @@ class Roulette(Master):
             # Server
             self.playercount -= 1
             self.__group.remove(player)
-            self.__ranks[player.Information]
+            self.__ranks.pop(player.Information[self.tag]['Rank'])
             # Client
             player.game = None
             player.id = "Unknown"
@@ -162,8 +201,19 @@ class Roulette(Master):
         self.playerMethod(player)
     
     def __evaluateRanks(self):
-        for player in self.__group:
-            for rank in range(1, a.keys()[len(a.keys())])
+        unchanged = False
+        num = len(self.__group) - 1
+        player = self.__group[num]
+        while not unchanged:
+            unchanged = True
+            for p in self.__group:
+                if p.money > player.money:
+                    t = p
+                    p = player
+                    p = t
+                    unchanged = False
+            num -= 1
+            player = self.__group[num]
 
     def play(self):
         landed = self.__wheel.roll() - 1 # making it [0:37] 0 = 0, 37 = 00
@@ -177,7 +227,8 @@ class Roulette(Master):
                         print "gone broke"
                 self.playerLeave(player)
             else:
-                self.playerBet(player)
+                player.changemind()
+                self.playerBet(player, player.bet, player.Information[self.tag]['BettingName'])
                 player.plays -= 1
                 player.Information['Roulette']['Winner'] = landed
                 if landed in player.Information['Roulette']['BettingNumber']:
@@ -276,12 +327,12 @@ class Player(Master):
         return "<Player| Name: %s - ID: %s - Money: %s - TotalExchange: %s - Wins: %s - Losses: %s>>" % (self.name, self.id, self.money, self.exchange, self.wins, self.losses)
     
     def changemind(self):
-        if self.stratpoint < Random(datetime.now()).random() or not self.Information[game.tag].has_key('BettingName'): # If they change their mind on their betting number
-            self.Information[game.tag]['BettingName'] = self.game.selection.keys()[int( len(self.selection.keys()) * Random(datetime.now()).random() )]
-            if self.Information[game.tag]['BettingName'] != 'straight up':
-                self.Information[game.tag]['BettingNumber'] = self.game.selection[self.Information[game.tag]['BettingName']]
+        if self.stratpoint < Random(datetime.now()).random() or not self.Information[self.game.tag].has_key('BettingName'): # If they change their mind on their betting number
+            self.Information[self.game.tag]['BettingName'] = self.game.selection.keys()[int( len(self.game.selection.keys()) * Random(datetime.now()).random() )]
+            if self.Information[self.game.tag]['BettingName'] != 'straight up':
+                self.Information[self.game.tag]['BettingNumber'] = self.game.selection[self.Information[self.game.tag]['BettingName']]
             else: # This is if it's a single number
-                self.Information[game.tag]['BettingNumber'] = [self.game.selection['straight up'][int( len(self.game.selection['straight up']) * Random(datetime.now()).random() )],]
+                self.Information[self.game.tag]['BettingNumber'] = [self.game.selection['straight up'][int( len(self.game.selection['straight up']) * Random(datetime.now()).random() )],]
     
     def reset(self, flags=0):
         '''
@@ -361,7 +412,10 @@ class Player(Master):
         if self.Information.has_key('won'):
             if not self.Information['won']:
                 self.losses += 1
-                self.bet *= 2
+                if not self.bet * 2 > self.money:
+                    self.bet *= 2
+                else:
+                    self.bet = self.money
             else:
                 self.wins += 1
                 self.bet = self.Information['starterbet']
