@@ -1,75 +1,24 @@
 from random import Random
 from datetime import datetime
+from MasterServer import _master
 import unittest
-
-#class TestSequenceFunctions(unittest.TestCase):
-#
-#    # Hook function designed to be overloaded for each function's test requirements
-#    def setUp(self):
-#        self.seq = range(10)
-#
-#    # All test functions must start with the name test* and can be named anything else afterwards
-#    def testshuffle(self): # Random test 1
-#        # make sure the shuffled sequence does not lose any elements
-#        random.shuffle(self.seq)
-#        self.seq.sort()
-#        self.assertEqual(self.seq, range(10)) # Raised to check for an expected result
-#
-#    def testchoice(self): # Random test 2
-#        element = random.choice(self.seq)
-#        self.assert_(element in self.seq) # Raised to verify a condition
-#
-#    def testsample(self): # Random test 3
-#        self.assertRaises(ValueError, random.sample, self.seq, 20)
-#        for element in random.sample(self.seq, 5):
-#            self.assert_(element in self.seq) # Raised to verify a condition
-#
-#def buildsuite():
-#    '''
-#        If a specific order is required, or a pair of functions that need to be tested together
-#    '''
-#    tests = ['testshuffle', 'testchoice', 'testsample']
-#
-#    return unittest.TestSuite(map(TestSequenceFunctions,
-#                                  ['testshuffle', 'testchoice', 'testsample']
-#                                 )
-#                             )
-#
-## This is used for finer ouput on each test
-#suite = unittest.TestLoader().loadTestsFromTestCase(TestSequenceFunctions) # Simple way of building all the test cases
-#asuite = buildsuite()
-#unittest.TextTestRunner(verbosity=2).run(suite)
-
-class Master:
-    # Private Globals
-    __info = "release_date(year.month.day)\nversion(year.month)\nmodified(year.month.day)\nUbuntu Style version control"
-    __modified = '9.1.14'
-    __release_date = '0.0.0'
-    __version = '9.1'
-    __ids = 10000
-    
-    def __init__(self):
-        self.attributes = {'program': self._program()}
-    
-    def __repr__(self):
-        return self._program()
-    
-    def _playergetID(self):
-        if not self.__class__ == Player().__class__:
-            self.__ids += 1
-            return "PLAYER_%s:%s" % (int(self.__ids / 10000) - 1, self.__ids % 10000)
-        else:
-            return "Unknown" # The Game is the only one that is allowed to assign IDs
-    
-    def _program(self):
-        return "<Version: %7s - Modified: %7s - Released: %7s>" % (self.__version, self.__modified, self.__release_date)
-    
-class Roulette(Master):
+  
+class Roulette():
     def __init__(self):
         self.playercount = 0
         self.__group = []
         self.__wheel = Dice(1,38)
         self.__ranks = {}
+        self.__highscore = {1: Player(name="Joe", money=10000),
+                            2: Player(name="Scott", money=9000),
+                            3: Player(name="Alan", money=8000),
+                            4: Player(name="Marisela", money=7000),
+                            5: Player(name="Jose", money=6000),
+                            6: Player(name="Jesus", money=5000),
+                            7: Player(name="Robin", money=4000),
+                            8: Player(name="Mike", money=3000),
+                            9: Player(name="John", money=2000),
+                            10: Player(name="Jane", money=1000)}
         
         self.__verbose = False
         
@@ -141,7 +90,6 @@ class Roulette(Master):
         if not player in self.__group:
             # Client
             player.game = self
-            player.id = self._playergetID()
             player.Information[self.tag] = {}
             player.Information[self.tag]['Rank'] = len(self.__ranks) + 1
             # Server
@@ -243,7 +191,7 @@ class Roulette(Master):
         player.Information[self.tag]['BettingName'] = selection
         player.Information[self.tag]['BettingNumber'] = self.selection[selection]
 
-class Player(Master):
+class Player():
     def __init__(self, **kw):
         self.rand = Random(datetime.now())
         
@@ -251,7 +199,7 @@ class Player(Master):
         
         # Default mode
         self.name = 'Bob'
-        self.id = "Unknown" # Assigned by Game
+        self.id = _master._getID()
         self.attentionspan = self.rand.random() # How long they'll spend playing the game
         self.stratpoint = self.rand.random() # How llong they'll spend using the same stradegy lower number is shorter
         # Always changes
@@ -420,7 +368,7 @@ class Player(Master):
                 self.wins += 1
                 self.bet = self.Information['starterbet']
 
-class Dice(Master):
+class Dice():
     
     def __init__(self, die = 1, sides = 6, **kw):
         self.rand = Random()
@@ -460,8 +408,6 @@ class Dice(Master):
     #Follow the Shoe
     #Avant Dernier
     #Regression Modelling
-m = Master()
-d = Dice()
 r = Roulette()
 p = []
 for a in range(10):
@@ -502,3 +448,4 @@ if False:
     
     print "Min: $%s" % s.min
     print "Max: $%s" % s.max
+
