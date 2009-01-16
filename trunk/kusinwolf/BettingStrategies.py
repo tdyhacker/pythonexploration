@@ -110,7 +110,6 @@ class Roulette():
             player.game = None
             player.id = "Unknown"
             del player.Information[self.tag]
-            player.reset(2)
         else:
             print "Player has already left"
     
@@ -162,6 +161,9 @@ class Roulette():
                     unchanged = False
             num -= 1
             player = self.__group[num]
+    
+    def getHighscores(self):
+        return self.__highscore
 
     def play(self):
         landed = self.__wheel.roll() - 1 # making it [0:37] 0 = 0, 37 = 00
