@@ -31,7 +31,7 @@ class Node:
         self.value = value
 
     def __repr__(self):
-        return "|%s -> %s|" % (self.name, self.value.eval())
+        return "|%s -> %.2f|" % (self.name, self.value.eval())
 
     def __cmp__(self, right):
         return self.value.__cmp__(right.value)
@@ -51,7 +51,7 @@ class Fraction:
         self.reduce()
         
     def __repr__(self):
-        return "<Fraction - %s + (%s/%s)>" % (self.whole, self.numerator, self.denominator)
+        return "<Fraction - %.2f)>" % ((float(self.numerator) / self.denominator) + self.whole)
     
     def __add__(self, right):
         w = int(self.whole + right.whole)
@@ -109,46 +109,207 @@ def findFraction(num):
 
 def findsmallest(nodes, tree):
     ''' finds the smallest and next smallest objects and returns them in highest to lowest order '''
+    def findLowerASCII(node):
+        chart = {}
+        chart['A'] = chart['a'] = 0
+        chart['B'] = chart['b'] = 1
+        chart['C'] = chart['c'] = 2
+        chart['D'] = chart['d'] = 3
+        chart['E'] = chart['e'] = 4
+        chart['F'] = chart['f'] = 5
+        chart['G'] = chart['g'] = 6
+        chart['H'] = chart['h'] = 7
+        chart['I'] = chart['i'] = 8
+        chart['J'] = chart['j'] = 9
+        chart['K'] = chart['k'] = 10
+        chart['L'] = chart['l'] = 11
+        chart['M'] = chart['m'] = 12
+        chart['N'] = chart['n'] = 13
+        chart['O'] = chart['o'] = 14
+        chart['P'] = chart['p'] = 15
+        chart['Q'] = chart['q'] = 16
+        chart['R'] = chart['r'] = 17
+        chart['S'] = chart['s'] = 18
+        chart['T'] = chart['t'] = 19
+        chart['U'] = chart['u'] = 20
+        chart['V'] = chart['v'] = 21
+        chart['W'] = chart['w'] = 22
+        chart['X'] = chart['x'] = 23
+        chart['Y'] = chart['y'] = 24
+        chart['Z'] = chart['z'] = 25
+        
+        while isinstance(node, Branch):
+            node = node.left
+        
+        return chart[node.name]
+    
     # Nodes will always get the highest values (0)
     if nodes:
-        smallest = nodes[0]
-        nsmallest = nodes[0]
+        smallest = None
+        nsmallest = None
     if tree:
         # Tree's will always get the lowest values (1)
-        tsmallest = tree[0]
-        tnsmallest = tree[0]
+        tsmallest = None
+        tnsmallest = None
     for node in nodes:
-        if smallest > node:
-            nsmallest = smallest
-            smallest = node
-        elif nsmallest > node:
-            nsmallest = node
-    for branches in tree:
-        if tsmallest == tnsmallest and tsmallest < branches:
-            tnsmallest = branches
-        if tsmallest > branches:
-            tnsmallest = tsmallest
-            tsmallest = branches
-        elif tnsmallest > branches:
-            tnsmallest = branches
-    if tree and nodes:
-        if not tsmallest == tnsmallest and not smallest == nsmallest:
-            if nsmallest > tsmallest:
-                smallest = tsmallest
-                nsmallest = tnsmallest
-            elif smallest < tsmallest and nsmallest > tsmallest:
-                nsmallest = tsmallest
-        elif smallest == nsmallest:
-            nsmallest = tsmallest
+        if smallest:
+            if smallest > node:
+                nsmallest = smallest
+                smallest = node
+            elif not nsmallest or nsmallest > node: # incase of none value, this takes the lead
+                nsmallest = node
+            elif smallest == node:
+                l = findLowerASCII(smallest)
+                r = findLowerASCII(node)
+                if l > r:
+                    nsmallest = smallest
+                    smallest = node
+                elif l < r:
+                    if nsmallest == node:
+                        l = findLowerASCII(nsmallest)
+                        r = findLowerASCII(node)
+                        if l > r:
+                            nsmallest = node
+                    elif nsmallest > node:
+                        nsmallest = node
         else:
-            if nsmallest > tsmallest:
+            smallest = node
+    for branches in tree:
+        if tsmallest:
+            if tsmallest > branches:
+                tnsmallest = tsmallest
+                tsmallest = branches
+            elif not tnsmallest or tnsmallest > branches: # incase of none value, this takes the lead
+                tnsmallest = branches
+            elif tsmallest == branches:
+                l = findLowerASCII(tsmallest)
+                r = findLowerASCII(branches)
+                if l > r:
+                    tnsmallest = tsmallest
+                    tsmallest = branches
+                elif l < r:
+                    if tnsmallest == branches:
+                        l = findLowerASCII(tnsmallest)
+                        r = findLowerASCII(branches)
+                        if l > r:
+                            tnsmallest = branches
+                    elif tnsmallest > branches:
+                        tnsmallest = branches
+        else:
+            tsmallest = branches
+    if tree and nodes: # if cross comparing the two groups
+        # If the nodes are the same values and the lower branch is the same value, the higher branch is not
+        if smallest and nsmallest and tsmallest and tnsmallest: # 2 nodes, 2 branches
+            if smallest > tsmallest:
+                if nsmallest > tnsmallest:
+                    smallest = tsmallest
+                    nsmallest = tnsmallest
+                elif nsmallest == tnsmallest:
+                    l = findLowerASCII(nsmallest)
+                    r = findLowerASCII(tnsmallest)
+                    if l > r:
+                        nsmallest = tnsmallest
+            elif smallest == tsmallest:
+                l = findLowerASCII(smallest)
+                r = findLowerASCII(tsmallest)
+                if l > r:
+                    if smallest > tnsmallest:
+                        smallest = tsmallest
+                        nsmallest = tnsmallest
+                    elif smallest == tnsmallest:
+                        l = findLowerASCII(smallest)
+                        r = findLowerASCII(tnsmallest)
+                        if l > r:
+                            nsmallest = tnsmallest
+                        else:
+                            nsmallest = smallest
+                            smallest = tsmallest
+                    else:
+                        nsmallest = smallest
+                        smallest = tsmallest
+                else:
+                    if nsmallest > tsmallest:
+                        nsmallest = tsmallest
+                    elif nsmallest == tsmallest:
+                        l = findLowerASCII(nsmallest)
+                        r = findLowerASCII(tsmallest)
+                        if l > r:
+                            nsmallest = tsmallest
+            elif nsmallest > tsmallest:
+                nsmallest = tsmallest
+            elif nsmallest == tsmallest:
+                l = findLowerASCII(nsmallest)
+                r = findLowerASCII(tsmallest)
+                if l > r:
+                    nsmallest = tsmallest
+            # Rules for Tripel and Quad?
+        elif smallest and nsmallest and tsmallest: # 2 nodes, 1 branch
+            if smallest > tsmallest:
                 nsmallest = smallest
                 smallest = tsmallest
-            elif smallest < tsmallest and nsmallest > tsmallest:
+            elif smallest == tsmallest:
+                l = findLowerASCII(smallest)
+                r = findLowerASCII(tsmallest)
+                if l > r:
+                    nsmallest = smallest
+                    smallest = tsmallest
+                else:
+                    if nsmallest > tsmallest:
+                        nsmallest = tsmallest
+                    elif nsmallest == tsmallest:
+                        l = findLowerASCII(nsmallest)
+                        r = findLowerASCII(tsmallest)
+                        if l > r:
+                            nsmallest = tsmallest
+        elif smallest and tsmallest and tnsmallest: # 1 node, 2 branches
+            if smallest > tsmallest:
+                if smallest > tnsmallest:
+                    smallest = tsmallest
+                    nsmallest = tnsmallest
+                elif smallest == tnsmallest:
+                    l = findLowerASCII(smallest)
+                    r = findLowerASCII(tnsmallest)
+                    if l > r:
+                        nsmallest = tnsmallest
+                    else:
+                        nsmallest = smallest
+                else:
+                    nsmallest = smallest
+            elif smallest == tsmallest:
+                l = findLowerASCII(smallest)
+                r = findLowerASCII(tsmallest)
+                if l > r:
+                    l = findLowerASCII(smallest)
+                    r = findLowerASCII(tnsmallest)
+                    if l > r:
+                        nsmallest = tnsmallest
+                        smallest = tsmallest
+                    else:
+                        nsmallest = smallest
+                        smallest = tsmallest
+                else:
+                    smallest = smallest
+                    nsmallest = tsmallest
+            else:
                 nsmallest = tsmallest
-    elif tree and not nodes:
+        elif smallest and tsmallest: # 1 node, 1 branch
+            if smallest > tsmallest:
+                nsmallest = smallest
+                smallest = tsmallest
+            elif smallest == tsmallest:
+                l = findLowerASCII(smallest)
+                r = findLowerASCII(tsmallest)
+                if l > r:
+                    nsmallest = smallest
+                    smallest = tsmallest
+                else:
+                    nsmallest = tsmallest
+            else:
+                nsmallest = tsmallest
+    elif tree and not nodes: # if the nodes group is empty
         smallest = tsmallest
         nsmallest = tnsmallest
+    # else and finally return the grouping in highest to lowest
     return (nsmallest, smallest)
 
 freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
@@ -164,7 +325,7 @@ while True:
     value = t[0] + t[1] # will always be a Fraction object
     tree.append(Branch(t[0], t[1], value))
     temp.append(Branch(t[0], t[1], value))
-    if t[0] != t[1]:
+    if (len(tree) > 1 or len(tempnodes) >= 1):
         if isinstance(t[0], Node):
             tempnodes.remove(t[0])
         else:
@@ -173,23 +334,29 @@ while True:
             tempnodes.remove(t[1])
         else:
             tree.remove(t[1])
-    elif t[0] == t[1]:
-        if isinstance(t[0], Node):
-            
     else:
         if isinstance(t[0], Node):
             tempnodes.remove(t[0])
         else:
             tree.remove(t[0])
-    print tree
-    print "\n\n"
-
     if not tempnodes and len(tree) == 1:
         break # Do While
 
 def trans(node):
-    if not isinstance(node, Node):
-        t(node.right)
-        t(node.left)
-    if isinstance(node, Node):
-        print node
+    print "Left:",
+    if isinstance(node.left, Node):
+        print node.left
+    else:
+        print node.left.value
+    print "Value: %s" % node.value
+    print "Left:",
+    if isinstance(node.right, Node):
+        print node.right
+    else:
+        print node.right.value
+    if not isinstance(node.right, Node):
+        print "->"
+        trans(node.right)
+    if not isinstance(node.left, Node):
+        print "<-"
+        trans(node.left)
