@@ -8,11 +8,34 @@ class Branch:
         self.value = value # sum of left and right
     
     def __repr__(self):
-        return "(0) %s -> %s <- %s (1)" % (self.left, self.value, self.right)
+        return " %s (0) -> %s <- (1) %s " % (self.left, self.value.eval(), self.right)
     
     def __cmp__(self, right):
-        return cmp(self.value, right.value)
+        return self.value.__cmp__(right.value)
     
+    def __add__(self, right):
+        return self.value + right.value
+
+    def traverse(self, num):
+        if num == 0:
+            return self.left
+        elif num == 1:
+            return self.right
+        else:
+            return "Error, 0 or 1 only"
+
+class Node:
+    def __init__(self, name, value):
+        ''' name is a string/char, value is a Fraction object '''
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return "|%s -> %s|" % (self.name, self.value.eval())
+
+    def __cmp__(self, right):
+        return self.value.__cmp__(right.value)
+
     def __add__(self, right):
         return self.value + right.value
 
@@ -22,16 +45,16 @@ class Fraction:
         if (n / d) >= 1 and n != d:
             w += (n / d)
             n %= d
-        self.numerator = float(n)
-        self.denominator = float(d)
-        self.whole = w
+        self.numerator = int(n)
+        self.denominator = int(d)
+        self.whole = int(w)
         self.reduce()
         
     def __repr__(self):
-        return "<Fraction - %s + (%s/%s)>" % (int(self.whole), int(self.numerator), int(self.denominator))
+        return "<Fraction - %s + (%s/%s)>" % (self.whole, self.numerator, self.denominator)
     
     def __add__(self, right):
-        w = self.whole + right.whole
+        w = int(self.whole + right.whole)
         if not self.denominator == right.denominator:
             n = (self.numerator * right.denominator) + (self.denominator * right.numerator)
             d = (self.denominator * right.denominator) 
@@ -49,15 +72,15 @@ class Fraction:
             return cmp((self.numerator * right.denominator), (self.denominator * right.numerator))
     
     def eval(self):
-        return (self.numerator / self.denominator) + self.whole
+        return (float(self.numerator) / float(self.denominator)) + self.whole
     
     def reduce(self):
         div = 2
         while div <= self.numerator:
             if (self.numerator % div == 0) and (self.denominator % div == 0):
-                div = 2
                 self.numerator /= div
                 self.denominator /= div
+                dev = 2
             else:
                 div += 1
     
@@ -77,31 +100,80 @@ def findFraction(num):
                 find.numerator += 1
         return find
 
-def findsmallest(tempnodes, trees):
+def findsmallest(nodes, tree):
     ''' finds the smallest and next smallest objects and returns them in highest to lowest order '''
-    smallest = tempnodes[0]
-    nsmallest = tempnodes[0]
-    tsmallest = trees[0]
-    tnsmallest = trees[0]
-    for node in tempnodes:
-        if smallest[1] > node[1]:
+    # Nodes will always get the highest values (0)
+    if nodes:
+        smallest = nodes[0]
+        nsmallest = nodes[0]
+    if tree:
+        # Tree's will always get the lowest values (1)
+        tsmallest = tree[0]
+        tnsmallest = tree[0]
+    for node in nodes:
+        if smallest > node:
             nsmallest = smallest
             smallest = node
-        elif nsmallest[1] > node[1]:
+        elif nsmallest > node:
             nsmallest = node
-    for branches in trees:
-        if smallest > branches.value
+    for branches in tree:
+        if tsmallest == tnsmallest and tsmallest < branches:
+            tnsmallest = branches
+        if tsmallest > branches:
+            tnsmallest = tsmallest
+            tsmallest = branches
+        elif tnsmallest > branches:
+            tnsmallest = branches
+    if tree and nodes:
+        if not tsmallest == tnsmallest and not smallest == nsmallest:
+            if nsmallest > tsmallest:
+                smallest = tsmallest
+                nsmallest = tnsmallest
+            elif smallest < tsmallest and nsmallest > tsmallest:
+                nsmallest = tsmallest
+        elif smallest == nsmallest:
+            nsmallest = tsmallest
+        else:
+            if nsmallest > tsmallest:
+                nsmallest = smallest
+                smallest = tsmallest
+            elif smallest < tsmallest and nsmallest > tsmallest:
+                nsmallest = tsmallest
+    elif tree and not nodes:
+        smallest = tsmallest
+        nsmallest = tnsmallest
     return (nsmallest, smallest)
 
 freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
-nodes = [(node[0], findFraction(node[1]))for node in freq]
-trees = []
+nodes = [Node(node[0], findFraction(node[1]))for node in freq]
+tree = []
 
 tempnodes = nodes[:] # makes a perfect copy
-t = findsmallest(tempnodes, trees)
 
-value = t[0][1] + t[1][1] # will always be a Fraction object
+while True:
+    t = findsmallest(tempnodes, tree)
+    value = t[0] + t[1] # will always be a Fraction object
+    tree.append(Branch(t[0], t[1], value))
+    if t[0] != t[1]:
+        if isinstance(t[0], Node):
+            tempnodes.remove(t[0])
+        else:
+            tree.remove(t[0])
+        if isinstance(t[1], Node):
+            tempnodes.remove(t[1])
+        else:
+            tree.remove(t[1])
+    else:
+        if isinstance(t[0], Node):
+            tempnodes.remove(t[0])
+        else:
+            tree.remove(t[0])
 
-trees.append(Branch(t[0], t[1], value))
-tempnodes.remove(t[0])
-tempnodes.remove(t[1])
+    if not tempnodes and len(tree) == 1:
+        break # Do While
+
+def t(node):
+    if not isinstance(node, Node):
+        t(node.right)
+        t(node.left)
+    print node.value
