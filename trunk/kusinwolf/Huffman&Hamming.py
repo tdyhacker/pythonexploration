@@ -72,7 +72,10 @@ class Fraction:
             return cmp((self.numerator * right.denominator), (self.denominator * right.numerator))
     
     def eval(self):
-        return (float(self.numerator) / float(self.denominator)) + self.whole
+        if not self.denominator == 0:
+            return (float(self.numerator) / float(self.denominator)) + self.whole
+        else:
+            return 0
     
     def reduce(self):
         div = 2
@@ -83,6 +86,10 @@ class Fraction:
                 dev = 2
             else:
                 div += 1
+        if self.numerator == self.denominator:
+            self.whole += 1
+            self.numerator = 0
+            self.denominator = 1
     
 def findFraction(num):
     num = float(num)
@@ -92,7 +99,7 @@ def findFraction(num):
     if num >= 1 and (num % int(math.floor(num))) == 0:
         return Fraction(0,1,w)
     else:
-        find = Fraction(1,1,w)
+        find = Fraction(0,1,w)
         while find.eval() != num:
             if find.eval() > num:
                 find.denominator += 1
@@ -147,6 +154,8 @@ def findsmallest(nodes, tree):
 freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
 nodes = [Node(node[0], findFraction(node[1]))for node in freq]
 tree = []
+temp = []
+t = None
 
 tempnodes = nodes[:] # makes a perfect copy
 
@@ -154,6 +163,7 @@ while True:
     t = findsmallest(tempnodes, tree)
     value = t[0] + t[1] # will always be a Fraction object
     tree.append(Branch(t[0], t[1], value))
+    temp.append(Branch(t[0], t[1], value))
     if t[0] != t[1]:
         if isinstance(t[0], Node):
             tempnodes.remove(t[0])
@@ -163,17 +173,23 @@ while True:
             tempnodes.remove(t[1])
         else:
             tree.remove(t[1])
+    elif t[0] == t[1]:
+        if isinstance(t[0], Node):
+            
     else:
         if isinstance(t[0], Node):
             tempnodes.remove(t[0])
         else:
             tree.remove(t[0])
+    print tree
+    print "\n\n"
 
     if not tempnodes and len(tree) == 1:
         break # Do While
 
-def t(node):
+def trans(node):
     if not isinstance(node, Node):
         t(node.right)
         t(node.left)
-    print node.value
+    if isinstance(node, Node):
+        print node
