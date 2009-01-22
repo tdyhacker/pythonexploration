@@ -29,6 +29,7 @@ class Node:
         ''' name is a string/char, value is a Fraction object '''
         self.name = name
         self.value = value
+        self.code = None
 
     def __repr__(self):
         return "|%s -> %.2f|" % (self.name, self.value.eval())
@@ -137,6 +138,9 @@ def findsmallest(nodes, tree):
         chart['X'] = chart['x'] = 23
         chart['Y'] = chart['y'] = 24
         chart['Z'] = chart['z'] = 25
+        chart['SP'] = chart['sp'] = 26
+        chart['STX'] = chart['stx'] = 27
+        chart['ETX'] = chart['etx'] = 28
         
         while isinstance(node, Branch):
             node = node.left
@@ -144,13 +148,11 @@ def findsmallest(nodes, tree):
         return chart[node.name]
     
     # Nodes will always get the highest values (0)
-    if nodes:
-        smallest = None
-        nsmallest = None
-    if tree:
-        # Tree's will always get the lowest values (1)
-        tsmallest = None
-        tnsmallest = None
+    smallest = None
+    nsmallest = None
+    # Tree's will always get the lowest values (1)
+    tsmallest = None
+    tnsmallest = None
     for node in nodes:
         if smallest:
             if smallest > node:
@@ -213,31 +215,12 @@ def findsmallest(nodes, tree):
                     nsmallest = smallest
                     smallest = tsmallest
             elif smallest == tsmallest:
-                l = findLowerASCII(smallest)
-                r = findLowerASCII(tsmallest)
-                if l > r:
-                    if smallest > tnsmallest:
-                        smallest = tsmallest
-                        nsmallest = tnsmallest
-                    elif smallest == tnsmallest:
-                        l = findLowerASCII(smallest)
-                        r = findLowerASCII(tnsmallest)
-                        if l > r:
-                            nsmallest = tnsmallest
-                        else:
-                            nsmallest = smallest
-                            smallest = tsmallest
-                    else:
-                        nsmallest = smallest
-                        smallest = tsmallest
+                if smallest >= tnsmallest:
+                    smallest = tsmallest
+                    nsmallest = tnsmallest
                 else:
-                    if nsmallest > tsmallest:
-                        nsmallest = tsmallest
-                    elif nsmallest == tsmallest:
-                        l = findLowerASCII(nsmallest)
-                        r = findLowerASCII(tsmallest)
-                        if l > r:
-                            nsmallest = tsmallest
+                    nsmallest = smallest
+                    smallest = tsmallest
             elif nsmallest > tsmallest:
                 nsmallest = tsmallest
             elif nsmallest == tsmallest:
@@ -278,6 +261,7 @@ def findsmallest(nodes, tree):
                         nsmallest = smallest
                 else:
                     nsmallest = smallest
+                    smallest = tsmallest
             elif smallest == tsmallest:
                 l = findLowerASCII(smallest)
                 r = findLowerASCII(tsmallest)
@@ -313,9 +297,27 @@ def findsmallest(nodes, tree):
         smallest = tsmallest
         nsmallest = tnsmallest
     # else and finally return the grouping in highest to lowest
+
     return (nsmallest, smallest)
 
-freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
+if False:
+    freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
+elif True:
+    freq = [('A',12.3),
+            ('E',7.6),
+            ('I',5.2),
+            ('O',9.1),
+            ('U',3.5),
+            ('B',5.1),
+            ('C',2.1),
+            ('N',6.7),
+            ('P',5.9),
+            ('S',12.3),
+            ('T',12.4),
+            ('sp',17.5),
+            ('etx',0.1),
+            ('stx',0.2)]
+
 nodes = [Node(node[0], findFraction(node[1]))for node in freq]
 tree = []
 temp = []
@@ -347,21 +349,44 @@ while True:
     if not tempnodes and len(tree) == 1:
         break # Do While
 
+code = []
+
 def trans(node):
     print "Left:",
     if isinstance(node.left, Node):
-        print node.left
+        code.append('0')
+        node.code = code
+        print node.left,
+        print node.code
+        code.pop()
     else:
         print node.left.value
     print "Value: %s" % node.value
+    
     print "right:",
     if isinstance(node.right, Node):
-        print node.right
+        code.append('1')
+        node.code = code
+        print node.right,
+        print node.code
+        code.pop()
     else:
         print node.right.value
+    
     if not isinstance(node.right, Node):
         print "->"
+        code.append('1')
         trans(node.right)
+    else:
+        node.code = code
     if not isinstance(node.left, Node):
         print "<-"
+        code.append('0')
         trans(node.left)
+    else:
+        node.code = code
+    if code:
+        code.pop()
+
+def getMessage(code):
+    # inverse code and go in reverse
