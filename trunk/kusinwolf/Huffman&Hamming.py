@@ -209,6 +209,9 @@ def findsmallest(nodes, tree):
                     r = findLowerASCII(tnsmallest)
                     if l > r:
                         nsmallest = tnsmallest
+                else:
+                    nsmallest = smallest
+                    smallest = tsmallest
             elif smallest == tsmallest:
                 l = findLowerASCII(smallest)
                 r = findLowerASCII(tsmallest)
@@ -321,6 +324,7 @@ t = None
 tempnodes = nodes[:] # makes a perfect copy
 
 while True:
+#def g():
     t = findsmallest(tempnodes, tree)
     value = t[0] + t[1] # will always be a Fraction object
     tree.append(Branch(t[0], t[1], value))
@@ -339,6 +343,7 @@ while True:
             tempnodes.remove(t[0])
         else:
             tree.remove(t[0])
+#    print t
     if not tempnodes and len(tree) == 1:
         break # Do While
 
@@ -349,7 +354,7 @@ def trans(node):
     else:
         print node.left.value
     print "Value: %s" % node.value
-    print "Left:",
+    print "right:",
     if isinstance(node.right, Node):
         print node.right
     else:
