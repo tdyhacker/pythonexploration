@@ -112,35 +112,35 @@ def findsmallest(nodes, tree):
     ''' finds the smallest and next smallest objects and returns them in highest to lowest order '''
     def findLowerASCII(node):
         chart = {}
-        chart['A'] = chart['a'] = 0
-        chart['B'] = chart['b'] = 1
-        chart['C'] = chart['c'] = 2
-        chart['D'] = chart['d'] = 3
-        chart['E'] = chart['e'] = 4
-        chart['F'] = chart['f'] = 5
-        chart['G'] = chart['g'] = 6
-        chart['H'] = chart['h'] = 7
-        chart['I'] = chart['i'] = 8
-        chart['J'] = chart['j'] = 9
-        chart['K'] = chart['k'] = 10
-        chart['L'] = chart['l'] = 11
-        chart['M'] = chart['m'] = 12
-        chart['N'] = chart['n'] = 13
-        chart['O'] = chart['o'] = 14
-        chart['P'] = chart['p'] = 15
-        chart['Q'] = chart['q'] = 16
-        chart['R'] = chart['r'] = 17
-        chart['S'] = chart['s'] = 18
-        chart['T'] = chart['t'] = 19
-        chart['U'] = chart['u'] = 20
-        chart['V'] = chart['v'] = 21
-        chart['W'] = chart['w'] = 22
-        chart['X'] = chart['x'] = 23
-        chart['Y'] = chart['y'] = 24
-        chart['Z'] = chart['z'] = 25
-        chart['SP'] = chart['sp'] = 26
-        chart['STX'] = chart['stx'] = 27
-        chart['ETX'] = chart['etx'] = 28
+        chart['A'] = chart['a'] = 65
+        chart['B'] = chart['b'] = 66
+        chart['C'] = chart['c'] = 67
+        chart['D'] = chart['d'] = 68
+        chart['E'] = chart['e'] = 69
+        chart['F'] = chart['f'] = 70
+        chart['G'] = chart['g'] = 71
+        chart['H'] = chart['h'] = 72
+        chart['I'] = chart['i'] = 73
+        chart['J'] = chart['j'] = 74
+        chart['K'] = chart['k'] = 75
+        chart['L'] = chart['l'] = 76
+        chart['M'] = chart['m'] = 77
+        chart['N'] = chart['n'] = 78
+        chart['O'] = chart['o'] = 79
+        chart['P'] = chart['p'] = 80
+        chart['Q'] = chart['q'] = 81
+        chart['R'] = chart['r'] = 82
+        chart['S'] = chart['s'] = 83
+        chart['T'] = chart['t'] = 84
+        chart['U'] = chart['u'] = 85
+        chart['V'] = chart['v'] = 86
+        chart['W'] = chart['w'] = 87
+        chart['X'] = chart['x'] = 88
+        chart['Y'] = chart['y'] = 89
+        chart['Z'] = chart['z'] = 90
+        chart['SP'] = chart['sp'] = 32
+        chart['STX'] = chart['stx'] = 2
+        chart['ETX'] = chart['etx'] = 3
         
         while isinstance(node, Branch):
             node = node.left
@@ -174,6 +174,11 @@ def findsmallest(nodes, tree):
                             nsmallest = node
                     elif nsmallest > node:
                         nsmallest = node
+            elif nsmallest == node:
+                l = findLowerASCII(nsmallest)
+                r = findLowerASCII(node)
+                if l > r:
+                    nsmallest = node
         else:
             smallest = node
     for branches in tree:
@@ -197,6 +202,11 @@ def findsmallest(nodes, tree):
                             tnsmallest = branches
                     elif tnsmallest > branches:
                         tnsmallest = branches
+            elif tnsmallest == branches:
+                l = findLowerASCII(tnsmallest)
+                r = findLowerASCII(branches)
+                if l > r:
+                    tnsmallest = branches
         else:
             tsmallest = branches
     if tree and nodes: # if cross comparing the two groups
@@ -350,20 +360,21 @@ while True:
     value = t[0] + t[1] # will always be a Fraction object
     tree.append(Branch(t[0], t[1], value))
     temp.append(Branch(t[0], t[1], value))
-    if (len(tree) > 1 or len(tempnodes) >= 1):
-        if isinstance(t[0], Node):
-            tempnodes.remove(t[0])
-        else:
-            tree.remove(t[0])
-        if isinstance(t[1], Node):
-            tempnodes.remove(t[1])
-        else:
-            tree.remove(t[1])
+    print t
+    
+    #while (t[0] not in tree) or (t[0] not in tempnodes)
+    if isinstance(t[0], Node):
+        print "deleting 0",
+        tempnodes.remove(t[0])
     else:
-        if isinstance(t[0], Node):
-            tempnodes.remove(t[0])
-        else:
-            tree.remove(t[0])
+        tree.remove(t[0])
+    
+    if isinstance(t[1], Node):
+        print "deleting 1"
+        tempnodes.remove(t[1])
+    else:
+        tree.remove(t[1])
+    
 #    print t
     if not tempnodes and len(tree) == 1:
         break # Do While
