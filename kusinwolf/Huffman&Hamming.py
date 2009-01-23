@@ -300,9 +300,9 @@ def findsmallest(nodes, tree):
 
     return (nsmallest, smallest)
 
-if False:
+if False: # Files and Database
     freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
-elif True:
+elif False: # Computer Arch
     freq = [('A',12.3),
             ('E',7.6),
             ('I',5.2),
@@ -317,6 +317,25 @@ elif True:
             ('sp',17.5),
             ('etx',0.1),
             ('stx',0.2)]
+elif True: # STX, LOL_PWNSAUCE,ETX
+    freq = [('A',7.2),
+            ('E',2),
+            ('I',4),
+            ('O',8.1),
+            ('U',7.6),
+            ('L',4),
+            ('P',5),
+            ('W',6),
+            ('N',8),
+            ('Z',9),
+            ('T',10),
+            ('R',4.5),
+            ('S',3.2),
+            ('V',2.7),
+            ('C',4.3),
+            ('sp',11.4),
+            ('stx',1),
+            ('etx',2)]
 
 nodes = [Node(node[0], findFraction(node[1]))for node in freq]
 tree = []
@@ -388,5 +407,5 @@ def trans(node):
     if code:
         code.pop()
 
-def getMessage(code):
+#def getMessage(code):
     # inverse code and go in reverse
