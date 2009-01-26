@@ -1,5 +1,7 @@
 import math
 
+DEBUG = 0
+
 class Branch:
     def __init__(self, left, right, value):
         ''' left and right should be Branch objects, value should be a Fraction object '''
@@ -310,6 +312,31 @@ def findsmallest(nodes, tree):
 
     return (nsmallest, smallest)
 
+def removeNode(lst, rnode):
+    ''' Removes a node with similar name as the compare node and returns a list '''
+    temp = []
+    for node in lst:
+        if node.name != rnode.name:
+            temp.append(node)
+    return temp
+
+def removeBranch(lst, rbranch):
+    ''' Removes a branch with similar 0 branch as the compare branch and returns a list '''
+    temp = [] # Temp list
+    node = rbranch.left # Comparing Branch
+    cnode = None # Find removing Branch
+    while not isinstance(node, Node):
+        node = node.left # Go up the 0 branch of the subtree
+    for branch in lst:
+        cnode = branch.left
+        while not isinstance(cnode, Node):
+            cnode = cnode.left
+        if cnode != node:
+            temp.append(branch)
+        #else:
+        #   remove the branch
+    return temp
+
 if False: # Files and Database
     freq = [('n',14),('sp',13),('a',12.1),('i',10.7),('o',9.9),('s',7.3),('e',6.4),('u',6.0),('c',5.5),('d',4.1),('y',3.8),('t',3.6),('b',2.2),('m',0.8),('r',0.4),('stx',0.15),('etx',0.05)]
 elif False: # Computer Arch
@@ -328,24 +355,43 @@ elif False: # Computer Arch
             ('etx',0.1),
             ('stx',0.2)]
 elif True: # STX, LOL_PWNSAUCE,ETX
-    freq = [('A',7.2),
-            ('E',2),
-            ('I',4),
-            ('O',8.1),
-            ('U',7.6),
-            ('L',4),
-            ('P',5),
-            ('W',6),
-            ('N',8),
-            ('Z',9),
-            ('T',10),
-            ('R',4.5),
-            ('S',3.2),
-            ('V',2.7),
-            ('C',4.3),
-            ('sp',11.4),
-            ('stx',1),
-            ('etx',2)]
+    freq = [\('A',7.2),
+            \('E',2),
+            \('I',4),
+            \('O',8.1),
+            \('U',7.6),
+            \('L',4),
+            \('P',5),
+            \('W',6),
+            \('N',8),
+            \('Z',9),
+            \('T',10),
+            \('R',4.5),
+            \('S',3.2),
+            \('V',2.7),
+            \('C',4.3),
+            \('sp',11.4),
+            \('stx',1),
+            \('etx',2)]
+elif False:
+    freq = [('A',7.9),
+            ('E',4.6),
+            ('I',8.2),
+            ('O',5.3),
+            ('U',2.4),
+            ('S',6.5),
+            ('C',4.8),
+            ('L',11.3),
+            ('T',1.7),
+            ('K',6.8),
+            ('Y',3.1),
+            ('P',9.2),
+            ('H',7.6),
+            ('G',2.9),
+            ('N',3.5),
+            ('sp',13.7),
+            ('stx',0.2),
+            ('etx',0.3)]
 
 nodes = [Node(node[0], findFraction(node[1]))for node in freq]
 tree = []
@@ -358,22 +404,23 @@ while True:
 #def g():
     t = findsmallest(tempnodes, tree)
     value = t[0] + t[1] # will always be a Fraction object
-    tree.append(Branch(t[0], t[1], value))
-    temp.append(Branch(t[0], t[1], value))
-    print t
+    if DEBUG:
+        print t
     
     #while (t[0] not in tree) or (t[0] not in tempnodes)
-    if isinstance(t[0], Node):
-        print "deleting 0",
-        tempnodes.remove(t[0])
-    else:
-        tree.remove(t[0])
-    
-    if isinstance(t[1], Node):
-        print "deleting 1"
-        tempnodes.remove(t[1])
-    else:
-        tree.remove(t[1])
+    if not tree or tree[0].value != Fraction(0,1,100):
+        if isinstance(t[0], Node):
+            tempnodes = removeNode(tempnodes, t[0])
+        else:
+            tree = removeBranch(tree, t[0])
+        
+        if isinstance(t[1], Node):
+            tempnodes = removeNode(tempnodes, t[1])
+        else:
+            tree = removeBranch(tree, t[1])
+            
+    tree.append(Branch(t[0], t[1], value))
+    temp.append(Branch(t[0], t[1], value))
     
 #    print t
     if not tempnodes and len(tree) == 1:
@@ -420,3 +467,5 @@ def trans(node):
 
 #def getMessage(code):
     # inverse code and go in reverse
+
+trans(tree[0])
