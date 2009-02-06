@@ -1,7 +1,8 @@
 from random import Random
 
-it = 0
+it = 4
 if it == 0:
+    # Computer Architecture their Huffman tree codes
     treevalues = {
     'a': "0010", "h": "0011", "i": "0000",
     "n": "00011", "p": "111", "sp": "010",
@@ -10,11 +11,50 @@ if it == 0:
     "t": "0001010", "etx": "00010111", "stx": "00010110",
     "y": "10100", "g": "10101", "o": "1011",
     }
-    keys = treevalues.keys()[:]
-    for info in keys:
-        treevalues[treevalues[info]] = info
+    
+elif it == 1:
+    # Computer Architecture Class, our Huffman tree codes
+    treevalues = {
+        "etx": "011011", "e": "11011", "stx": "011010",
+        "v": "11010", "s": "01100", "i": "00111", "l": "00110",
+        "c": "00001", "r": "00000", "p": "1100", "w": "0111",
+        "a": "0101", "u": "0100", "n": "0010", "o": "0001",
+        "z": "111", "t": "101", "sp": "100"
+    }
 
-    hexvalues = {
+elif it == 2:
+    # Dr Hall's Computer Architecture Huffman tree codes
+    treevalues = {
+        "A": "100", "E": "0010", "I": "1100", "O": "111", "U": "10110",
+        "B": "1101", "C": "101110", "N": "0011", "P": "1010",
+        "S": "011", "T": "010", "sp": "000", "etx": "1011111", "stx": "1011110"
+    }
+elif it == 3:
+    # Files & Database Class, our Huffman tree codes
+    treevalues = {
+        "o": "111", "i": "110", "a": "100", "n": "001", "sp": "011",
+        "c": "1011", "s": "0001", "u": "1010", "e": "0101", "t": "01000",
+        "b": "010010", "d": "00000", "y": "00001", "m": "0100110", "r": "01001110",
+        "stx": "010011110", "etx": "010011111"
+    }
+
+elif it == 4:
+    # Files & Database Class, their huffman tree codes
+    treevalues = {
+        "a": "011", "e": "0000", "i": "0101", "o": "1001", "u": "0010001",
+        "y": "0010010", "c": "101", "d": "00101", "m": "1000", "p": "0001",
+        "r": "110", "s": "111", "t": "0011", "v": "0010000", "sp": "0100",
+        "stx": "00100110", "etx": "00100111"
+    }
+
+
+keys = treevalues.keys()[:]
+for info in keys:
+    treevalues[treevalues[info]] = info
+
+
+# Binary to Hex & Hex to Binary
+hexvalues = {
     '0000': "0", '0001': "1", '0010': "2", '0011': "3",
     '0100': "4", '0101': "5", '0110': "6", '0111': "7",
     '1000': "8", '1001': "9", '1010': "A", '1011': "B",
@@ -23,32 +63,7 @@ if it == 0:
     "4": '0100', "5": '0101', "6": '0110', "7": '0111',
     "8": '1000', "9": '1001', "A": '1010', "B": '1011',
     "C": '1100', "D": '1101', "E": '1110', "F": '1111'
-    }
-    
-elif it == 1:
-    # Computer Architicture Class, our Huffman tree codes
-    treevalues = {
-        "etx": "011011", "e": "11011", "stx": "011010",
-        "v": "11010", "s": "01100", "i": "00111", "l": "00110",
-        "c": "00001", "r": "00000", "p": "1100", "w": "0111",
-        "a": "0101", "u": "0100", "n": "0010", "o": "0001",
-        "z": "111", "t": "101", "sp": "100"
-    }
-    keys = treevalues.keys()[:]
-    for info in keys:
-        treevalues[treevalues[info]] = info
-
-    # Binary to Hex & Hex to Binary
-    hexvalues = {
-        '0000': "0", '0001': "1", '0010': "2", '0011': "3",
-        '0100': "4", '0101': "5", '0110': "6", '0111': "7",
-        '1000': "8", '1001': "9", '1010': "A", '1011': "B",
-        '1100': "C", '1101': "D", '1110': "E", '1111': "F",
-        "0": '0000', "1": '0001', "2": '0010', "3": '0011',
-        "4": '0100', "5": '0101', "6": '0110', "7": '0111',
-        "8": '1000', "9": '1001', "A": '1010', "B": '1011',
-        "C": '1100', "D": '1101', "E": '1110', "F": '1111'
-    }
+}
 
 binary = ""
 bTohex = ""
@@ -57,9 +72,25 @@ hamming = ""
 thamming = ""
 hammingcon = ""
 stream = []
+
+# This is the 0th one
+#text =  "look at locusts"
+#text = "such a high kite"
+
+# This is the 1st one
 #text = "lol pwnsauce"
 #text = "rat trap"
-text =  "look at locusts"
+
+# This is the 2nd one
+#text = "A SAP CAT SAT"
+
+# This is the 3rd one
+#text = "sunday"
+#text = "can i eat sea"
+
+# This is the 4th one
+#text = "to smart"
+text = "sedyceum"
 
 stream.append("stx")
 for char in text:
@@ -92,6 +123,9 @@ for amount in range(n):
 if hsize % 2 == 1:
     bTohex += "0"
     binary += "0000"
+
+# Injection
+#bTohex = "26:E0:52:54:08:C0" #"23:E0:52:08:C0"
 
 t = binary
 binary = ""
