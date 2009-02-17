@@ -6,7 +6,7 @@
   </head>
   <body>
     ${next.body()}
-    <BR>
+    <BR />
     <div id='footer'>
         ${self.footer()} <!-- Build out footer either by default or overwrite it -->
     </div>
@@ -21,6 +21,6 @@
 
 <%def name="footer()">
     Site Map
-    <BR>
+    <BR />
     :D
 </%def>
