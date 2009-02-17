@@ -1,8 +1,8 @@
 from mako import runtime, filters, cache
 UNDEFINED = runtime.UNDEFINED
 _magic_number = 2
-_modified_time = 1223667025.432497
-_template_filename='/home/adorrycott/PylonsApps/helloworld/helloworld/templates/serverinfo.mako'
+_modified_time = 1234901834.793761
+_template_filename='/home/adorrycott/PylonsApps/pyexp/kusinwolf/PylonsApps/helloworld/helloworld/templates/serverinfo.mako'
 _template_uri='/serverinfo.mako'
 _template_cache=cache.Cache(__name__, _modified_time)
 _source_encoding=None

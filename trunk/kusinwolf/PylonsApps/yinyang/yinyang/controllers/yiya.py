@@ -10,4 +10,4 @@ class YiyaController(BaseController):
         # Return a rendered template
         #   return render('/some/template.mako')
         # or, Return a response
-        return 'Hello World'
+        return render("/index.mako")
