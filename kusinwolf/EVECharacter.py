@@ -1,37 +1,38 @@
 from re import compile
+import httplib, urllib
 
 # TODO: Add threading to speed up processing
 #	- API call thread
 #	- Parse thread
 
+SKILLTREE = {}
+
 class Skill(object):
-    def __init__(self, id, skillpoints, level, name=None):
+    def __init__(self, id, skillpoints, level, name=None, rank=None, primary=None, secondary=None, groupname=None, groupid=None, description=None, dependencies=None):
         '''skill id, skillpoints and level required, name is optional'''
         self.id = int(id)
         self.skillpoints = int(skillpoints)
         self.level = int(level)
         self.name = name or "Unknown"
+        if rank:
+            rank = int(rank)
+        self.rank = rank
+        self.primary = primary
+        self.secondary = secondary
+        self.groupname = groupname
+        self.groupid = groupid
+        self.description = description
+        self.dependencies = dependencies # Needs to be a list, will then be turned into a dictionary later one
 
+        # What it takes to hit this level
         self.level1rank1 = 250      # 250
         self.level2rank1 = 1415     # 1,415
         self.level3rank1 = 8000     # 8,000
         self.level4rank1 = 45255    # 45,255
         self.level5rank1 = 256000   # 256,000
-
-        # Need to remove this and replace it with the true ranks, this method does not work for anything that has more skillpoints then the start
-        if self.level == 1:
-            self.rank = int(self.skillpoints / self.level1rank1)
-        elif self.level == 2:
-            self.rank = int(self.skillpoints / self.level2rank1)
-        elif self.level == 3:
-            self.rank = int(self.skillpoints / self.level3rank1)
-        elif self.level == 4:
-            self.rank = int(self.skillpoints / self.level4rank1)
-        elif self.level == 5:
-            self.rank = int(self.skillpoints / self.level5rank1)
     
     def __repr__(self):
-        return "<Skill %s - Points %s - Level %s - Rank: %s>" % (self.name, self.skillpoints, self.level, self.rank)
+        return "<Skill %s - Points %s - Level %s - Rank %sx>" % (self.name, self.skillpoints, self.level, self.rank)
 
     def __cmp__(self, right):
         if type(right) == int:
@@ -44,6 +45,10 @@ class Skill(object):
             return (self.__getattribute__("level%srank1" % (self.level + 1)) * self.rank) - self.skillpoints
         else:
             return 0
+    
+    def expandedrepr(self):
+        return "<Skill %s - Points %s - Level %s - Rank %sx\n\t- PrimaryAttribute %s - SecondaryAttribute %s\n\t- GroupName %s - GroupID %s\n\tDescription: %s>" % (
+                    self.name, self.skillpoints, self.level, self.rank, self.primary, self.secondary, self.groupname, self.groupid, self.description)
 
 class Certificate(object):
     def __init__(self, id, level=None, name=None):
@@ -180,10 +185,16 @@ class Character(object):
         '''Builds the level1-5 attributes for %s''' % self.name
         for level in range(6):
             self.__setattr__("level%s" % level, self.getSkillsAtLevel(level))
+    
+    def addSkill(self, skill):
+        if skill not in self.skillset:
+            self.skillset[skill.id] = skill
+            self.totalSkillPoints += skill.skillpoints
+            self.buildLevels()
 
-    def editSkill(self, id, skillpoints, level, name=None, delete=False):
+    def editSkill(self, id, skillpoints, level, name=None, rank=None, primary=None, secondary=None, groupname=None, groupid=None, description=None, delete=False):
         '''
-        editing a non existent skill is the same as adding\n
+        editing a non existent skill is not the same as adding\n
         name is an option if added a new skill to the character, will be passed through to building the skill\n
         you should never have to delete a skill from your tree, but incase CCP does something strange
         '''
@@ -192,13 +203,17 @@ class Character(object):
             self.totalSkillPoints -= self.skillset[id].skillpoints
             self.skillset.pop(id)
         elif id in self.skillset:
-            self.totalSkillPoints -= self.skillset[id].skillpoints
+            self.totalSkillPoints -= self.skillset[id].skillpoints # remove the current points
             self.skillset[id].skillpoints = skillpoints
             self.skillset[id].level = level
             self.skillset[id].name = name
-        else:
-            self.skillset[id] = Skill(id, skillpoints, level, name)
-            self.totalSkillPoints += self.skillset[id].skillpoints
+            self.skillset[id].rank = rank
+            self.skillset[id].primary = primary
+            self.skillset[id].secondary = secondary
+            self.skillset[id].groupname = grouname
+            self.skillset[id].groupid = groupid
+            self.skillset[id].description = description
+            self.totalSkillPoints += self.skillset[id].skillpoints # add the new amount back in
         
         self.buildLevels()
     
@@ -372,7 +387,7 @@ def extractXML(filename):
         
         if compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line):
             skillInfo = compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line).groups()
-            characterobject.editSkill(skillInfo[0], skillInfo[1], skillInfo[2])
+            characterobject.addSkill(Skill(skillInfo[0], skillInfo[1], skillInfo[2]))
         
         if compile(""".*<row certificateID="(.*)" />.*""").match(line):
             characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])
@@ -401,10 +416,216 @@ def extractXML(filename):
     
     return characterobject
 
-def extractAPI(APIKey):
+def extractAPI(params):
     '''
     a key is required to connect to the API
     returns a characterobject
     '''
-    # TODO: Connect to API at eve-online to gather information
-    return "Fixing this functionality soon"
+    timeUpdated = None
+    characterID = None
+    augmentorName = None
+    characterobject = None
+    slot = 1
+
+    charactersheet = apiSelect("charactersheet", params)
+
+    data = charactersheet.read()
+    
+    for line in data.split("\r\n"):
+        if compile(""".*<currentTime>(.*)</currentTime>.*""").match(line):
+            timeUpdated = compile(""".*<currentTime>(.*)</currentTime>.*""").match(line).groups()[0]
+        
+        if compile(""".*<characterID>(.*)</characterID>.*""").match(line):
+            characterID = compile(""".*<characterID>(.*)</characterID>.*""").match(line).groups()[0]
+        
+        if compile(""".*<name>(.*)</name>.*""").match(line):
+            characterobject = Character(compile(""".*<name>(.*)</name>.*""").match(line).groups()[0], characterID=characterID, timeUpdated=timeUpdated)
+        
+        if compile(""".*<race>(.*)</race>.*""").match(line):
+            characterobject.race = compile(""".*<race>(.*)</race>.*""").match(line).groups()[0]
+        
+        if compile(""".*<bloodLine>(.*)</bloodLine>.*""").match(line):
+            characterobject.bloodline = compile(""".*<bloodLine>(.*)</bloodLine>.*""").match(line).groups()[0]
+        
+        if compile(""".*<gender>(.*)</gender>.*""").match(line):
+            characterobject.gender = compile(""".*<gender>(.*)</gender>.*""").match(line).groups()[0]
+        
+        if compile(""".*<corporationName>(.*)</corporationName>.*""").match(line):
+            characterobject.corporationName = compile(""".*<corporationName>(.*)</corporationName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<corporationID>(.*)</corporationID>.*""").match(line):
+            characterobject.corporationID = compile(""".*<corporationID>(.*)</corporationID>.*""").match(line).groups()[0]
+        
+        if compile(""".*<cloneName>(.*)</cloneName>.*""").match(line):
+            characterobject.cloneName = compile(""".*<cloneName>(.*)</cloneName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<cloneSkillPoints>(.*)</cloneSkillPoints>.*""").match(line):
+            characterobject.cloneSkillPoints = compile(""".*<cloneSkillPoints>(.*)</cloneSkillPoints>.*""").match(line).groups()[0]
+        
+        if compile(""".*<balance>(.*)</balance>.*""").match(line):
+            characterobject.balance = compile(""".*<balance>(.*)</balance>.*""").match(line).groups()[0]
+        
+        if compile(""".*<augmentatorName>(.*)</augmentatorName>.*""").match(line):
+            augmentorName = compile(""".*<augmentatorName>(.*)</augmentatorName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<augmentatorValue>(.*)</augmentatorValue>.*""").match(line):
+            characterobject.editAugmentation(slot, augmentorName, compile(""".*<augmentatorValue>(.*)</augmentatorValue>.*""").match(line).groups()[0])
+            slot += 1
+        
+        if compile(""".*<intelligence>(.*)</intelligence>.*""").match(line):
+            characterobject.intelligence = compile(""".*<intelligence>(.*)</intelligence>.*""").match(line).groups()[0]
+        
+        if compile(""".*<memory>(.*)</memory>.*""").match(line):
+            characterobject.memory = compile(""".*<memory>(.*)</memory>.*""").match(line).groups()[0]
+        
+        if compile(""".*<charisma>(.*)</charisma>.*""").match(line):
+            characterobject.charisma = compile(""".*<charisma>(.*)</charisma>.*""").match(line).groups()[0]
+        
+        if compile(""".*<perception>(.*)</perception>.*""").match(line):
+            characterobject.perception = compile(""".*<perception>(.*)</perception>.*""").match(line).groups()[0]
+        
+        if compile(""".*<willpower>(.*)</willpower>.*""").match(line):
+            characterobject.willpower = compile(""".*<willpower>(.*)</willpower>.*""").match(line).groups()[0]
+        
+        if compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line):
+            skillInfo = compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line).groups()
+            id = int(skillInfo[0])
+            skillpoints = int(skillInfo[1])
+            level = int(skillInfo[2])
+            
+            if id in SKILLTREE:
+                SKILLTREE[id].skillpoints = skillpoints
+                SKILLTREE[id].level = level
+                characterobject.addSkill(SKILLTREE[id])
+            else:
+                characterobject.addSkill(Skill(id, skillpoints, level))
+        
+        if compile(""".*<row certificateID="(.*)" />.*""").match(line):
+            characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])
+        
+        # if the rowset name is in a certain area, change the function being used.match(line)
+        if compile(""".*<rowset name="(.*)" key=".*" columns=".*">.*""").match(line):
+            row = compile(""".*<rowset name="(.*)" key=".*" columns=".*">.*""").match(line)
+        
+        if compile(""".*<row roleID="(.*)" roleName="(.*)" />.*""").match(line):
+            roleInfo = compile(""".*<row roleID="(.*)" roleName="(.*)" />.*""").match(line).groups()
+            
+            if row == "corporationRoles":
+                characterobject.corporationRoles(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtHQ":
+                characterobject.corporationRolesAtHQ(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtBase":
+                characterobject.corporationRolesAtBase(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtOther":
+                characterobject.corporationRolesAtOther(roleInfo[0], roleInfo[1])
+        
+        if compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line):
+            titleInfo = compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line).groups()
+            characterobject.corporationRoles(titleInfo[0], titleInfo[1])
+
+    return characterobject
+
+def buildSkillTree(params):
+    '''
+    :D Get up everybody, lets get to the disco\n
+    Oh Baby! I'm king of disco! :D
+    '''
+    rank = None
+    primary = None
+    secondary = None
+    name = None
+    id = None
+    groupname = None
+    groupid = None
+    description = ""
+    required = []
+    isdescription = False
+    
+    tree = apiSelect("skilltree", params)
+
+    skills = tree.read()
+    for sline in skills.split("\r\n"): # While not found and not end of data
+        pgroupname_groupid = compile(""".*<row groupName="(.*)" groupID="(.*)">.*""").match(sline)
+        pname_groupid_id = compile(""".*<row typeName="(.*)" groupID=".*" typeID="(.*)">.*""").match(sline)
+        
+        if compile(""".*<description>.*""").match(sline):
+            pisdescription = True
+        if isdescription:
+            description += sline
+        if compile(""".*</description>.*""").match(sline):
+            pisdescription = False
+            
+        prank = compile(""".*<rank>(.*)</rank>.*""").match(sline)
+        prequired = compile(""".*<row typeID="(.*)" skillLevel=".*"/>.*""").match(sline)
+        pprimary = compile(""".*<primaryAttribute>(.*)</primaryAttribute>.*""").match(sline)
+        psecondary = compile(""".*<secondaryAttribute>(.*)</secondaryAttribute>.*""").match(sline)
+        
+        if pgroupname_groupid:
+            groupname = pgroupname_groupid.groups()[0]
+            groupid = pgroupname_groupid.groups()[1]
+        if pname_groupid_id:
+            name = pname_groupid_id.groups()[0]
+            id = pname_groupid_id.groups()[1]
+        if prank:
+            rank = prank.groups()[0]
+        if prequired:
+            required.append(prequired.groups()[0])
+        if pprimary:
+            primary = pprimary.groups()[0]
+        if psecondary:
+            secondary = psecondary.groups()[0]
+        
+        if secondary: # Last object to be built
+            SKILLTREE[id] = Skill(id, 0, 0, name=name, rank=rank, primary=primary, secondary=secondary, groupname=groupname, groupid=groupid, description=description, dependencies=required)
+            # Reset everything
+            rank = None
+            primary = None
+            secondary = None
+            name = None
+            id = None
+            description = ""
+            required = []
+            isdescription = False
+            
+    
+    # Rebuild skill dependencies for each skill so that they are objects in a dictionary, for greater indexing
+    for skill in SKILLTREE:
+        if SKILLTREE[skill]:
+            requiredSkillsList = SKILLTREE[skill].dependencies
+            SKILLTREE[skill].dependencies = {}
+            for requiredSkill in requiredSkillsList:
+                SKILLTREE[skill].dependencies[requiredSkill] = SKILLTREE[requiredSkill]
+
+def apiSelect(item, params):
+    '''Options:\n
+        \tWalletTransactions    : requires full API key\n
+        \tCharacterSheet        : Returns the current character sheet\n
+        \tSkillInTraining       : Returns the current skill trainning, 0 for no skill\n
+        \tSkillTree             : Returns the entire skill tree for EVE\n
+        \tRefTypes              : Returns the reference types for the wallet\n
+    '''
+
+    params = urllib.urlencode( params )
+    
+    # connect to server, POST our request, fairly simple stuff...
+    headers = { "Content-type": "application/x-www-form-urlencoded" }
+    conn = httplib.HTTPConnection("api.eve-online.com")
+    
+    item = item.lower()
+    
+    if item == "wallettransactions":
+        conn.request("POST", "/char/WalletTransactions.xml.aspx", params, headers) # Requires full API key
+    elif item == "charactersheet":
+        conn.request("POST", "/char/CharacterSheet.xml.aspx", params, headers)
+    elif item == "skillintraining":
+        conn.request("POST", "/char/SkillInTraining.xml.aspx", params, headers)
+    elif item == "skilltree":
+        conn.request("POST", "/eve/SkillTree.xml.aspx", params, headers) # no real inputs required
+    elif item == "reftypes":
+        conn.request("POST", "/eve/RefTypes.xml.aspx", params, headers) # no real inputs required
+    
+    response = conn.getresponse()
+
+    conn.close
+    
+    return response
