@@ -1,0 +1,161 @@
+/* Generic Selectors */
+body {
+    background-image: url("../imgs/Aperture Science.png");
+    background-position: center;
+    background-color: #000000;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
+    font-family: "Times New Roman";
+    font-size: 14px;
+    text-align: center;
+    color: #FFFFFF;
+}
+
+p {
+    width: 80%;
+}
+
+li {
+    list-style-type: none;
+    line-height: 150%;
+    list-style-image: url(../images/arrowSmall.gif);
+}
+
+h1 {
+    font-size: 36px;
+    text-align: center;
+}
+
+h2 {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    color: #FFFFFF;
+    border-bottom: 1px solid #C6EC8C;
+}
+
+/**************** Pseudo classes ****************/
+a:link {
+    color: #80B1FF;
+    text-decoration: underline;
+    font-weight: bold;
+    text-decoration: none
+}
+
+a:visited {
+    color: #BFD8FF;
+    text-decoration: underline;
+    font-weight: bold;
+    text-decoration: none
+}
+
+a:hover {
+    color: #003486;
+    padding-bottom: 5px;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+a:active {
+    color: rgb(255, 0, 102);
+    font-weight: bold;
+    text-decoration: underline
+}
+
+/************************* ID's *************************/
+#addevent {
+    background-color: #888;
+}
+.controls-bottom {
+    color: #888;
+}
+
+.controls-top {
+    color: #D0BFFF;
+}
+
+.editpage {
+    position: relative;
+    margin-left: 7%;
+    text-align: left;
+    width: 128px;
+    font-size: 19px;
+    /*background-color: #292929;*/
+    color: #D0BFFF;
+}
+
+.datedisplay {
+    font-size: 14px;
+    text-align: center;
+    color: #FFF;
+    font-family: coolsville;
+    font-weight: bold;
+}
+
+.datalink {
+    font-size: 23px;
+    text-align: center;
+}
+
+#footer{
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+.innerprocessbox {
+    font-size: 16px;
+    text-align: left;
+}
+
+/* All of the text inside the row cells just below the link */
+.namespace {
+    font-size: 14px;
+    padding-top:4px;
+}
+
+
+/* The names just before the text under the link */
+.namespacetitles {
+    color: #D5BFFF;
+}
+
+#processbox {
+    padding: 3px 3px 3px 3px; /*top right bottom left*/
+    text-align: center;
+    margin-top: 3%;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+#statsbox{
+    padding: 3px 3px 3px 3px; /*top right bottom left*/
+    text-align: center;
+    margin-top: 3%;
+    margin-left: 10%;
+    margin-right: 20%;
+}
+
+#statsright{
+    text-align: left;
+    position: absolute;
+    top: 3%;
+    right: 6%;
+    padding: 0px 0px 0px 3px;/*top right bottom left*/
+}
+
+/* A single tab usful for pushing text a small distance */
+.tab {
+    padding-left: 44px;
+}
+
+.tableheader {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #D5BFFF;
+}
+
+
+
