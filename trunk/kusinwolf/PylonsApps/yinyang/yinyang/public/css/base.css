@@ -66,37 +66,25 @@ a:active {
 
 /************************* ID's *************************/
 #addevent {
-    background-color: #888;
-}
-.controls-bottom {
-    color: #888;
-}
-
-.controls-top {
-    color: #D0BFFF;
-}
-
-.editpage {
-    position: relative;
-    margin-left: 7%;
+    width: 60%;
+    margin-left: 20%;
+    margin-right: 20%;
+    background-color: #AAA;
+    color: #000;
     text-align: left;
-    width: 128px;
-    font-size: 19px;
-    /*background-color: #292929;*/
-    color: #D0BFFF;
+    border: ridge;
+    border-color: #4444FF;
 }
-
-.datedisplay {
-    font-size: 14px;
+#addevent-title {
     text-align: center;
-    color: #FFF;
-    font-family: coolsville;
-    font-weight: bold;
 }
-
-.datalink {
-    font-size: 23px;
+#addevent-type {
     text-align: center;
+}
+#addevent-text {
+    background-color: #DDD;
+    color: #000;
+    border: groove;
 }
 
 #footer{
@@ -104,57 +92,9 @@ a:active {
     margin-right: 20%;
 }
 
-.innerprocessbox {
-    font-size: 16px;
-    text-align: left;
-}
-
-/* All of the text inside the row cells just below the link */
-.namespace {
-    font-size: 14px;
-    padding-top:4px;
-}
-
-
-/* The names just before the text under the link */
-.namespacetitles {
-    color: #D5BFFF;
-}
-
-#processbox {
-    padding: 3px 3px 3px 3px; /*top right bottom left*/
-    text-align: center;
-    margin-top: 3%;
-    margin-left: 5%;
-    margin-right: 5%;
-}
-
-#statsbox{
-    padding: 3px 3px 3px 3px; /*top right bottom left*/
-    text-align: center;
-    margin-top: 3%;
-    margin-left: 10%;
-    margin-right: 20%;
-}
-
-#statsright{
-    text-align: left;
-    position: absolute;
-    top: 3%;
-    right: 6%;
-    padding: 0px 0px 0px 3px;/*top right bottom left*/
-}
-
 /* A single tab usful for pushing text a small distance */
 .tab {
     padding-left: 44px;
-}
-
-.tableheader {
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-    color: #D5BFFF;
 }
 
 
