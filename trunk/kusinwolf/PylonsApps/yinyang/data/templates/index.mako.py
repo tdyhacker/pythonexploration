@@ -1,7 +1,7 @@
 from mako import runtime, filters, cache
 UNDEFINED = runtime.UNDEFINED
 _magic_number = 2
-_modified_time = 1234903076.864722
+_modified_time = 1234903645.0950949
 _template_filename='/home/adorrycott/PylonsApps/pyexp/kusinwolf/PylonsApps/yinyang/yinyang/templates/index.mako'
 _template_uri='/index.mako'
 _template_cache=cache.Cache(__name__, _modified_time)
@@ -27,7 +27,7 @@ def render_body(context,**pageargs):
         # SOURCE LINE 1
         context.write(u'\n')
         # SOURCE LINE 4
-        context.write(u'\n\n')
+        context.write(u'\n\n<div id="addevent">\n<TABLE>\n    <TR>\n        <TD>\n            Title\n        </TD>\n        <TD>\n            Yin/Yang/Neutral\n        </TD>\n    </TR>\n    <TR>\n        <TD>\n            Text\n        </TD>\n    </TR>\n</TABLE>\n</div>')
         return ''
     finally:
         context.caller_stack.pop_frame()
