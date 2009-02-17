@@ -1,7 +1,7 @@
 from mako import runtime, filters, cache
 UNDEFINED = runtime.UNDEFINED
 _magic_number = 2
-_modified_time = 1234903052.7952681
+_modified_time = 1234903465.507509
 _template_filename=u'/home/adorrycott/PylonsApps/pyexp/kusinwolf/PylonsApps/yinyang/yinyang/templates/base.mako'
 _template_uri=u'/base.mako'
 _template_cache=cache.Cache(__name__, _modified_time)
@@ -23,7 +23,7 @@ def render_body(context,**pageargs):
         context.write(u' <!-- Build out header either by default or overwrite it -->\n    ')
         # SOURCE LINE 4
         context.write(unicode(h.javascript_include_tag(builtins=True)))
-        context.write(u'\n    <link href="/css/hello.css" rel="stylesheet" type="text/css">\n  </head>\n  <body>\n    ')
+        context.write(u'\n    <link href="/css/base.css" rel="stylesheet" type="text/css">\n  </head>\n  <body>\n    ')
         # SOURCE LINE 8
         context.write(unicode(next.body()))
         context.write(u"\n    <BR>\n    <div id='footer'>\n        ")
