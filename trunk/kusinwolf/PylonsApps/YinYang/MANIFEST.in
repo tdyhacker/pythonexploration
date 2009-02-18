@@ -1,0 +1,3 @@
+include yinyang/config/deployment.ini_tmpl
+recursive-include yinyang/public *
+recursive-include yinyang/templates *
