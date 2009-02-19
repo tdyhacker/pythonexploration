@@ -1,0 +1,25 @@
+Added most functionality to the project
+TODO:
+        Fix webheplers
+        Develop full login system
+        Prevent someone from logging in after a certain amount of logins
+        Attach an auth to the base of accessing any webpage
+--This line, and those below, will be ignored--
+
+A    data
+A    data/templates
+A    data/templates/index.mako.py
+A    data/templates/base.mako.py
+M    development.ini
+A    yinyang/model/login_attempts.py
+A    yinyang/model/logins.py
+M    yinyang/model/__init__.py
+M    yinyang/model/meta.py
+A    yinyang/tests/functional/test_controller.py
+M    yinyang/config/routing.py
+A    yinyang/controllers/controller.py
+M    yinyang/lib/helpers.py
+M    yinyang/public/css/base.css
+A    yinyang/templates/addevent.mako
+A    yinyang/templates/base.mako
+A    yinyang/templates/index.mako

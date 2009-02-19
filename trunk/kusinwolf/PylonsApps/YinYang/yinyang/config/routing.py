@@ -22,5 +22,9 @@ def make_map():
 
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
+    
+    # Redesigned routes
+    map.connect('/', controller='controller', action='index') # Make sure they're not avoiding the page
+    map.connect('/index', controller='controller', action='index')
 
     return map
