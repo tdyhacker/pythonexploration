@@ -428,7 +428,9 @@ def extractAPI(params):
     slot = 1
 
     charactersheet = apiSelect("charactersheet", params)
-
+    
+    buildSkillTree(params)
+    
     data = charactersheet.read()
     
     for line in data.split("\r\n"):
@@ -493,12 +495,12 @@ def extractAPI(params):
             skillpoints = int(skillInfo[1])
             level = int(skillInfo[2])
             
-            if id in SKILLTREE:
-                SKILLTREE[id].skillpoints = skillpoints
-                SKILLTREE[id].level = level
-                characterobject.addSkill(SKILLTREE[id])
+            if str(id) in SKILLTREE:
+                SKILLTREE[str(id)].skillpoints = skillpoints
+                SKILLTREE[str(id)].level = level
+                characterobject.addSkill(SKILLTREE[str(id)])
             else:
-                characterobject.addSkill(Skill(id, skillpoints, level))
+                characterobject.addSkill(Skill(id, skillpoints, level)) # , name=SKILLTREE[id].name, rank=SKILLTREE[id].rank, description=SKILLTREE[id].description
         
         if compile(""".*<row certificateID="(.*)" />.*""").match(line):
             characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])
