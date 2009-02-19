@@ -25,7 +25,7 @@ ID_LEVEL4 = 103
 ID_LEVEL5 = 104
 
 class Browser(wx.Frame):
-    def __init__(self, parent, id, title, cObject, size=(1024, 768)):
+    def __init__(self, parent, id, title, cObject, size=(400, 400)):
         self.cObject = cObject # ChacterObject passed in
         # The entire window
         wx.Frame.__init__(self, parent, id, title, size) # Width, Height
@@ -106,12 +106,14 @@ class Browser(wx.Frame):
         
         # Sets the sizer object
         panel.SetSizer(vbox)
-        
+
         # Centers on the screen
         self.Centre()
         
         # Keeps the window visable to the human
         self.Show(True)
+        
+        panel.SetSize((400,400))
     
     def OnLevel1(self, event):
         # Spawn child
