@@ -3,10 +3,11 @@
 import wx
 import random
 
+# Global IDs
 ID_PLUS = 10
 ID_MINUS = 11
-ID_RANDOM = 12
 
+# Sub Panel
 class LeftPanel(wx.Panel):
     def __init__(self, parent, id):
         wx.Panel.__init__(self, parent, id, style=wx.BORDER_SUNKEN)
@@ -17,11 +18,9 @@ class LeftPanel(wx.Panel):
 
         button1 = wx.Button(self, ID_PLUS, '+', (10, 10))
         button2 = wx.Button(self, ID_MINUS, '-', (10, 60))
-        #button2 = wx.Button(self, ID_RANDOM, 'Random', (10, 110))
         
         self.Bind(wx.EVT_BUTTON, self.OnPlus, id=ID_PLUS)
         self.Bind(wx.EVT_BUTTON, self.OnMinus, id=ID_MINUS)
-        #self.Bind(wx.EVT_BUTTON, self.OnRandom, id=ID_RANDOM)
 
     def OnPlus(self, event):
         # resetting the text to be the new selection
@@ -31,18 +30,14 @@ class LeftPanel(wx.Panel):
         # resetting the text to be the new selection
         self.text.SetLabel(self.rightPanel.prev())
 
-    #def OnRandom(self, event):
-    #    # resetting the text to be the new selection
-    #    self.text.SetLabel(self.rightPanel.random())
-
-
+# Sub Panel
 class RightPanel(wx.Panel):
     def __init__(self, parent, id):
         wx.Panel.__init__(self, parent, id, style=wx.BORDER_SUNKEN)
         self.textlist = ["Hello!", "Howdy!", "How's it going?", "What's up?", "Sup?"]
         self.textpos = 0
         
-        # Text that will be displayed
+        # Text that will be displayed at first
         self.text = wx.StaticText(self, -1, self.textlist[0], (40, 60))
     
     def next(self):
@@ -61,10 +56,7 @@ class RightPanel(wx.Panel):
             
         return self.textlist[self.textpos]
 
-    #def random(self):
-    #    return self.textlist[int(random.Random().random() * len(self.textlist))]
-
-
+# Master Frame
 class Communicate(wx.Frame):
     def __init__(self, parent, id, title, size=(400, 200)):
         wx.Frame.__init__(self, parent, id, title, size=size)
