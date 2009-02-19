@@ -4,6 +4,9 @@ from sqlalchemy import orm
 
 from yinyang.model import meta
 
+import logins
+import login_attempts
+
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     ## Reflected tables must be defined and mapped here
@@ -14,6 +17,10 @@ def init_model(engine):
     #
     meta.Session.configure(bind=engine)
     meta.engine = engine
+    
+    # Custom tables
+    orm.mapper(logins.Login, logins.login_table)
+    orm.mapper(login_attempts.LoginAttempts, login_attempts.login_attempts_table)
 
 
 ## Non-reflected tables may be defined and mapped at module level
