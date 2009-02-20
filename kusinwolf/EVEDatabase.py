@@ -28,7 +28,6 @@ from EVECharacter import Skill, Character, Certificate, Augmentation, Title
 # SQL to grab the two attribute names and group names ordering first by group name and then by their ranks in order
 #select s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name from skill s join attribute a1 on s.primary_attribute_id = a1.id join attribute a2 on s.secondary_attribute_id = a2.id join groups g on s.groupname_id = g.id order by s.groupname_id, s.rank;
 
-
 DATABASE_NAME = "personal_db1" # Database to connect to
 DATABASE_USER = "kusinwolf" # The name of the user with permission to connect
 DATABASE_HOST = "localhost" # Location of the database, if it be online or somewhere else
@@ -272,9 +271,13 @@ def extractAPI(params):
     characterobject = Character("Starting Up", -1, "Sometime Back")
     
     db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
-    db_conn.query("select s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
-    skills 
+    db_conn.query("select s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, g.group_id, s.description from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
     
+    skills = db_conn.store_result()
+    
+    for row in range(skills.num_rows()):
+        skill = skills.fetch_row()[0]
+        characterobject.addSkill(Skill(skill[0], 0, 0, name=skill[1], rank=skill[2], primary=skill[3], secondary=skill[4], groupname=skill[5], groupid=skill[6], description=skill[7]))
     
     charactersheet = apiSelect("charactersheet", params)
     
@@ -344,12 +347,10 @@ def extractAPI(params):
             skillpoints = int(skillInfo[1])
             level = int(skillInfo[2])
             
-            if str(id) in SKILLTREE:
-                SKILLTREE[str(id)].skillpoints = skillpoints
-                SKILLTREE[str(id)].level = level
-                characterobject.addSkill(SKILLTREE[str(id)])
+            if id in characterobject.skillset:
+                characterobject.editSkill(id, skillpoints=skillpoints, level=level) # If the skill exists, update it
             else:
-                characterobject.addSkill(Skill(id, skillpoints, level)) # , name=SKILLTREE[id].name, rank=SKILLTREE[id].rank, description=SKILLTREE[id].description
+                characterobject.addSkill(Skill(id, skillpoints, level)) # if not, build it out
         
         if compile(""".*<row certificateID="(.*)" />.*""").match(line):
             characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])
@@ -411,6 +412,7 @@ def apiSelect(item, params):
     return response
 
 
+# ONLY UPDATE WITH THIS COMMAND FOR NEW DATABASES!!
 #_buildSkillTree({
 #    'characterID': 672389577, # Lucitania
 #    'userid': 1690689,
