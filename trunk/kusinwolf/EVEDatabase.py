@@ -1,0 +1,419 @@
+from re import compile
+import httplib, urllib
+import MySQLdb
+from EVECharacter import Skill, Character, Certificate, Augmentation, Title
+
+# Required modules
+# - easy_install mysql-python
+# - sudo apt-get install python-wxgtk2.8
+
+# TODO: Add threading to speed up processing
+#	- API call thread
+#	- Parse thread
+#       - Use MySQL database to keep track of skilltree to reduce API calls
+#       - Convert the current way of reading skills to SQL database
+#       - Generate personal database to
+#       - Add dependency table and cross reference table
+
+# Notes:
+# - Should the GUI even touch anything in the database?
+# - If not, then a layer wrapper should be built to handle all functionality
+# - That sounds too complicated for something this small
+
+# SQL tables required for this script
+#CREATE TABLE groups (id INT NOT NULL AUTO_INCREMENT, group_name TEXT, group_id INT, PRIMARY KEY(id));
+#CREATE TABLE attribute (id INT NOT NULL AUTO_INCREMENT, attribute_name TEXT, PRIMARY KEY(id));
+#CREATE TABLE skill (id INT NOT NULL AUTO_INCREMENT, skill_id INT, skill_name TEXT, rank INT, primary_attribute_id INT, secondary_attribute_id INT, groupname_id INT, description TEXT, PRIMARY KEY(id), FOREIGN KEY (groupname_id) REFERENCES groups(id), FOREIGN KEY (primary_attribute_id) REFERENCES attribute(id), FOREIGN KEY (secondary_attribute_id) REFERENCES attribute(id));
+
+# SQL to grab the two attribute names and group names ordering first by group name and then by their ranks in order
+#select s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name from skill s join attribute a1 on s.primary_attribute_id = a1.id join attribute a2 on s.secondary_attribute_id = a2.id join groups g on s.groupname_id = g.id order by s.groupname_id, s.rank;
+
+
+DATABASE_NAME = "personal_db1" # Database to connect to
+DATABASE_USER = "kusinwolf" # The name of the user with permission to connect
+DATABASE_HOST = "localhost" # Location of the database, if it be online or somewhere else
+
+TABLE_SKILL = "skill"
+TABLE_GROUP = "groups"
+TABLE_ATTRIBUTE = "attribute"
+
+def _buildSkillTree(params):
+    '''
+        WARNING: This should only be run manually to build the entire database, not all the time
+        
+        Builds the entire skill tree in the MySQL database
+        Currently manual labor of cleaning out the table is required
+    '''
+    info = {}
+    info['required'] = []
+    info['description'] = "" # There may not be a description
+    
+    # connection to the database
+    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    db_conn.autocommit(True)
+    
+    # Get the tree from the API
+    tree = apiSelect("skilltree", params)    
+    
+    skills = tree.read()
+    
+    # For all the information in the API, go line by line
+    for sline in skills.split("\r\n"): # While not found and not end of data
+        pgroupname_groupid = compile(""".*<row groupName="(.*)" groupID="(.*)">.*""").match(sline)
+        pname_groupid_id = compile(""".*<row typeName="(.*)" groupID=".*" typeID="(.*)">.*""").match(sline)
+        
+        pdescription = compile(""".*<description>(.*)</description>.*""").match(sline)
+        prank = compile(""".*<rank>(.*)</rank>.*""").match(sline)
+        prequired = compile(""".*<row typeID="(.*)" skillLevel=".*"/>.*""").match(sline)
+        pprimary = compile(""".*<primaryAttribute>(.*)</primaryAttribute>.*""").match(sline)
+        psecondary = compile(""".*<secondaryAttribute>(.*)</secondaryAttribute>.*""").match(sline)
+        
+        if pgroupname_groupid: # Happens only once
+            info['groupname'] = pgroupname_groupid.groups()[0]
+            info['groupid'] = int(pgroupname_groupid.groups()[1])
+        if pname_groupid_id:
+            info['name'] = pname_groupid_id.groups()[0]
+            info['id'] = int(pname_groupid_id.groups()[1])
+        if pdescription:
+            info['description'] += pdescription.groups()[0]
+        if prank:
+            info['rank'] = int(prank.groups()[0])
+        if prequired:
+            info['required'].append(int(prequired.groups()[0]))
+        if pprimary:
+            info['primary'] = pprimary.groups()[0]
+        if psecondary:
+            info['secondary'] = psecondary.groups()[0]
+        
+        if info.has_key('secondary'): # Last object to be built
+            #SKILLTREE[id] = Skill(id, 0, 0, name=name, rank=rank, primary=primary, secondary=secondary, groupname=groupname, groupid=groupid, description=description, dependencies=required)
+            
+            info['skilltable'] = TABLE_SKILL
+            info['grouptable'] = TABLE_GROUP
+            info['attributetable'] = TABLE_ATTRIBUTE
+            
+            db_conn.query("SELECT id FROM %(grouptable)s WHERE group_name = '%(groupname)s'" % info) # query for the groupname id
+            groupid = db_conn.store_result()
+            
+            if groupid.num_rows() == 0:
+                db_conn.query("INSERT INTO %(grouptable)s (group_name, group_id) VALUES ('%(groupname)s', '%(groupid)s')" % info) # query for the groupname id
+                
+                db_conn.query("SELECT id FROM %(grouptable)s WHERE group_name = '%(groupname)s'" % info) # query for the groupname id
+                groupid = db_conn.store_result()
+            
+            # Finally
+            info['groupname_id'] = int(groupid.fetch_row()[0][0]) # Grabs the single item
+            
+            db_conn.query("SELECT id FROM %(attributetable)s WHERE attribute_name = '%(primary)s'" % info) # query for the attribute id
+            primaryid = db_conn.store_result()
+            
+            if primaryid.num_rows() == 0:
+                db_conn.query("INSERT INTO %(attributetable)s (attribute_name) VALUES ('%(primary)s')" % info) # query for the groupname id
+                
+                db_conn.query("SELECT id FROM %(attributetable)s WHERE attribute_name = '%(primary)s'" % info) # query for the attribute id
+                primaryid = db_conn.store_result()
+            
+            # Finally
+            info['primary_id'] = int(primaryid.fetch_row()[0][0]) # Grabs the single item
+            
+            db_conn.query("SELECT id FROM %(attributetable)s WHERE attribute_name = '%(secondary)s'" % info) # query for the attribute id
+            secondaryid = db_conn.store_result()
+            
+            if secondaryid.num_rows() == 0:
+                db_conn.query("INSERT INTO %(attributetable)s (attribute_name) VALUES ('%(secondary)s')" % info) # query for the groupname id
+                
+                db_conn.query("SELECT id FROM %(attributetable)s WHERE attribute_name = '%(secondary)s'" % info) # query for the attribute id
+                secondaryid = db_conn.store_result()
+            
+            # Finally
+            info['secondary_id'] = int(secondaryid.fetch_row()[0][0]) # Grabs the single item
+            
+            # Replace the single quote with a double backslash and single quote
+            info['description'] = info['description'].replace("'", "\\'")
+            
+            db_conn.query("INSERT INTO %(skilltable)s (skill_id, skill_name, rank, description, primary_attribute_id, secondary_attribute_id, groupname_id) VALUES (%(id)s, '%(name)s', %(rank)s, '%(description)s', %(primary_id)s, %(secondary_id)s, %(groupname_id)s)" % info) # commit skill
+            
+            # Hold the groupname and groupid [why?]
+            groupname = info['groupname']
+            groupid = info['groupid']
+            # Reset everything
+            info = {}
+            info['groupname'] = groupname
+            info['groupid'] = groupid
+            info['description'] = ""
+            info['required'] = []
+            
+    
+    # TODO: Rewrite this for the database
+    # Rebuild skill dependencies for each skill so that they are objects in a dictionary, for greater indexing
+    #for skill in SKILLTREE:
+    #    if SKILLTREE[skill]:
+    #        requiredSkillsList = SKILLTREE[skill].dependencies
+    #        SKILLTREE[skill].dependencies = {}
+    #        for requiredSkill in requiredSkillsList:
+    #            SKILLTREE[skill].dependencies[requiredSkill] = SKILLTREE[requiredSkill]
+
+def extractXML(filename):
+    '''
+    filename is the string in which the file is located on the hard disk\n
+    returns a characterobject
+    '''
+    
+    timeUpdated = None
+    characterID = None
+    augmentorName = None
+    characterobject = None
+    slot = 1
+    
+    try:
+        characterSheet = open(filename, "r")
+    except:
+        print "File not exist in location %s" % filename
+        characterSheet.close()
+    
+    for line in characterSheet.readlines():
+        if compile(""".*<currentTime>(.*)</currentTime>.*""").match(line):
+            timeUpdated = compile(""".*<currentTime>(.*)</currentTime>.*""").match(line).groups()[0]
+        
+        if compile(""".*<characterID>(.*)</characterID>.*""").match(line):
+            characterID = compile(""".*<characterID>(.*)</characterID>.*""").match(line).groups()[0]
+        
+        if compile(""".*<name>(.*)</name>.*""").match(line):
+            characterobject = Character(compile(""".*<name>(.*)</name>.*""").match(line).groups()[0], characterID=characterID, timeUpdated=timeUpdated)
+        
+        if compile(""".*<race>(.*)</race>.*""").match(line):
+            characterobject.race = compile(""".*<race>(.*)</race>.*""").match(line).groups()[0]
+        
+        if compile(""".*<bloodLine>(.*)</bloodLine>.*""").match(line):
+            characterobject.bloodline = compile(""".*<bloodLine>(.*)</bloodLine>.*""").match(line).groups()[0]
+        
+        if compile(""".*<gender>(.*)</gender>.*""").match(line):
+            characterobject.gender = compile(""".*<gender>(.*)</gender>.*""").match(line).groups()[0]
+        
+        if compile(""".*<corporationName>(.*)</corporationName>.*""").match(line):
+            characterobject.corporationName = compile(""".*<corporationName>(.*)</corporationName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<corporationID>(.*)</corporationID>.*""").match(line):
+            characterobject.corporationID = compile(""".*<corporationID>(.*)</corporationID>.*""").match(line).groups()[0]
+        
+        if compile(""".*<cloneName>(.*)</cloneName>.*""").match(line):
+            characterobject.cloneName = compile(""".*<cloneName>(.*)</cloneName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<cloneSkillPoints>(.*)</cloneSkillPoints>.*""").match(line):
+            characterobject.cloneSkillPoints = compile(""".*<cloneSkillPoints>(.*)</cloneSkillPoints>.*""").match(line).groups()[0]
+        
+        if compile(""".*<balance>(.*)</balance>.*""").match(line):
+            characterobject.balance = compile(""".*<balance>(.*)</balance>.*""").match(line).groups()[0]
+        
+        if compile(""".*<augmentatorName>(.*)</augmentatorName>.*""").match(line):
+            augmentorName = compile(""".*<augmentatorName>(.*)</augmentatorName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<augmentatorValue>(.*)</augmentatorValue>.*""").match(line):
+            characterobject.editAugmentation(slot, augmentorName, compile(""".*<augmentatorValue>(.*)</augmentatorValue>.*""").match(line).groups()[0])
+            slot += 1
+        
+        if compile(""".*<intelligence>(.*)</intelligence>.*""").match(line):
+            characterobject.intelligence = compile(""".*<intelligence>(.*)</intelligence>.*""").match(line).groups()[0]
+        
+        if compile(""".*<memory>(.*)</memory>.*""").match(line):
+            characterobject.memory = compile(""".*<memory>(.*)</memory>.*""").match(line).groups()[0]
+        
+        if compile(""".*<charisma>(.*)</charisma>.*""").match(line):
+            characterobject.charisma = compile(""".*<charisma>(.*)</charisma>.*""").match(line).groups()[0]
+        
+        if compile(""".*<perception>(.*)</perception>.*""").match(line):
+            characterobject.perception = compile(""".*<perception>(.*)</perception>.*""").match(line).groups()[0]
+        
+        if compile(""".*<willpower>(.*)</willpower>.*""").match(line):
+            characterobject.willpower = compile(""".*<willpower>(.*)</willpower>.*""").match(line).groups()[0]
+        
+        if compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line):
+            skillInfo = compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line).groups()
+            characterobject.addSkill(Skill(skillInfo[0], skillInfo[1], skillInfo[2]))
+        
+        if compile(""".*<row certificateID="(.*)" />.*""").match(line):
+            characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])
+        
+        # if the rowset name is in a certain area, change the function being used.match(line)
+        if compile(""".*<rowset name="(.*)" key=".*" columns=".*">.*""").match(line):
+            row = compile(""".*<rowset name="(.*)" key=".*" columns=".*">.*""").match(line)
+        
+        if compile(""".*<row roleID="(.*)" roleName="(.*)" />.*""").match(line):
+            roleInfo = compile(""".*<row roleID="(.*)" roleName="(.*)" />.*""").match(line).groups()
+            
+            if row == "corporationRoles":
+                characterobject.corporationRoles(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtHQ":
+                characterobject.corporationRolesAtHQ(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtBase":
+                characterobject.corporationRolesAtBase(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtOther":
+                characterobject.corporationRolesAtOther(roleInfo[0], roleInfo[1])
+        
+        if compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line):
+            titleInfo = compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line).groups()
+            characterobject.corporationRoles(titleInfo[0], titleInfo[1])
+
+    characterSheet.close()
+    
+    return characterobject
+
+def extractAPI(params):
+    '''
+    a key is required to connect to the API
+    returns a characterobject
+    '''
+    timeUpdated = None
+    characterID = None
+    augmentorName = None
+    characterobject = None
+    slot = 1
+
+    characterobject = Character("Starting Up", -1, "Sometime Back")
+    
+    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    db_conn.query("select s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
+    skills 
+    
+    
+    charactersheet = apiSelect("charactersheet", params)
+    
+    data = charactersheet.read()
+    
+    for line in data.split("\r\n"):
+        if compile(""".*<currentTime>(.*)</currentTime>.*""").match(line):
+            timeUpdated = compile(""".*<currentTime>(.*)</currentTime>.*""").match(line).groups()[0]
+        
+        if compile(""".*<characterID>(.*)</characterID>.*""").match(line):
+            characterID = compile(""".*<characterID>(.*)</characterID>.*""").match(line).groups()[0]
+        
+        if compile(""".*<name>(.*)</name>.*""").match(line):
+            characterobject.name = compile(""".*<name>(.*)</name>.*""").match(line).groups()[0]
+            characterobject.characterID = characterID
+            characterobject.timeUpdated = timeUpdated
+        
+        if compile(""".*<race>(.*)</race>.*""").match(line):
+            characterobject.race = compile(""".*<race>(.*)</race>.*""").match(line).groups()[0]
+        
+        if compile(""".*<bloodLine>(.*)</bloodLine>.*""").match(line):
+            characterobject.bloodline = compile(""".*<bloodLine>(.*)</bloodLine>.*""").match(line).groups()[0]
+        
+        if compile(""".*<gender>(.*)</gender>.*""").match(line):
+            characterobject.gender = compile(""".*<gender>(.*)</gender>.*""").match(line).groups()[0]
+        
+        if compile(""".*<corporationName>(.*)</corporationName>.*""").match(line):
+            characterobject.corporationName = compile(""".*<corporationName>(.*)</corporationName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<corporationID>(.*)</corporationID>.*""").match(line):
+            characterobject.corporationID = compile(""".*<corporationID>(.*)</corporationID>.*""").match(line).groups()[0]
+        
+        if compile(""".*<cloneName>(.*)</cloneName>.*""").match(line):
+            characterobject.cloneName = compile(""".*<cloneName>(.*)</cloneName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<cloneSkillPoints>(.*)</cloneSkillPoints>.*""").match(line):
+            characterobject.cloneSkillPoints = compile(""".*<cloneSkillPoints>(.*)</cloneSkillPoints>.*""").match(line).groups()[0]
+        
+        if compile(""".*<balance>(.*)</balance>.*""").match(line):
+            characterobject.balance = compile(""".*<balance>(.*)</balance>.*""").match(line).groups()[0]
+        
+        if compile(""".*<augmentatorName>(.*)</augmentatorName>.*""").match(line):
+            augmentorName = compile(""".*<augmentatorName>(.*)</augmentatorName>.*""").match(line).groups()[0]
+        
+        if compile(""".*<augmentatorValue>(.*)</augmentatorValue>.*""").match(line):
+            characterobject.editAugmentation(slot, augmentorName, compile(""".*<augmentatorValue>(.*)</augmentatorValue>.*""").match(line).groups()[0])
+            slot += 1
+        
+        if compile(""".*<intelligence>(.*)</intelligence>.*""").match(line):
+            characterobject.intelligence = compile(""".*<intelligence>(.*)</intelligence>.*""").match(line).groups()[0]
+        
+        if compile(""".*<memory>(.*)</memory>.*""").match(line):
+            characterobject.memory = compile(""".*<memory>(.*)</memory>.*""").match(line).groups()[0]
+        
+        if compile(""".*<charisma>(.*)</charisma>.*""").match(line):
+            characterobject.charisma = compile(""".*<charisma>(.*)</charisma>.*""").match(line).groups()[0]
+        
+        if compile(""".*<perception>(.*)</perception>.*""").match(line):
+            characterobject.perception = compile(""".*<perception>(.*)</perception>.*""").match(line).groups()[0]
+        
+        if compile(""".*<willpower>(.*)</willpower>.*""").match(line):
+            characterobject.willpower = compile(""".*<willpower>(.*)</willpower>.*""").match(line).groups()[0]
+        
+        if compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line):
+            skillInfo = compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line).groups()
+            id = int(skillInfo[0])
+            skillpoints = int(skillInfo[1])
+            level = int(skillInfo[2])
+            
+            if str(id) in SKILLTREE:
+                SKILLTREE[str(id)].skillpoints = skillpoints
+                SKILLTREE[str(id)].level = level
+                characterobject.addSkill(SKILLTREE[str(id)])
+            else:
+                characterobject.addSkill(Skill(id, skillpoints, level)) # , name=SKILLTREE[id].name, rank=SKILLTREE[id].rank, description=SKILLTREE[id].description
+        
+        if compile(""".*<row certificateID="(.*)" />.*""").match(line):
+            characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])
+        
+        # if the rowset name is in a certain area, change the function being used.match(line)
+        if compile(""".*<rowset name="(.*)" key=".*" columns=".*">.*""").match(line):
+            row = compile(""".*<rowset name="(.*)" key=".*" columns=".*">.*""").match(line)
+        
+        if compile(""".*<row roleID="(.*)" roleName="(.*)" />.*""").match(line):
+            roleInfo = compile(""".*<row roleID="(.*)" roleName="(.*)" />.*""").match(line).groups()
+            
+            if row == "corporationRoles":
+                characterobject.corporationRoles(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtHQ":
+                characterobject.corporationRolesAtHQ(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtBase":
+                characterobject.corporationRolesAtBase(roleInfo[0], roleInfo[1])
+            elif row == "corporationRolesAtOther":
+                characterobject.corporationRolesAtOther(roleInfo[0], roleInfo[1])
+        
+        if compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line):
+            titleInfo = compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line).groups()
+            characterobject.corporationRoles(titleInfo[0], titleInfo[1])
+
+    return characterobject
+
+def apiSelect(item, params):
+    '''Options:\n
+        \tWalletTransactions    : requires full API key\n
+        \tCharacterSheet        : Returns the current character sheet\n
+        \tSkillInTraining       : Returns the current skill trainning, 0 for no skill\n
+        \tSkillTree             : Returns the entire skill tree for EVE\n
+        \tRefTypes              : Returns the reference types for the wallet\n
+    '''
+
+    params = urllib.urlencode( params )
+    
+    # connect to server, POST our request, fairly simple stuff...
+    headers = { "Content-type": "application/x-www-form-urlencoded" }
+    conn = httplib.HTTPConnection("api.eve-online.com")
+    
+    item = item.lower()
+    
+    if item == "wallettransactions":
+        conn.request("POST", "/char/WalletTransactions.xml.aspx", params, headers) # Requires full API key
+    elif item == "charactersheet":
+        conn.request("POST", "/char/CharacterSheet.xml.aspx", params, headers)
+    elif item == "skillintraining":
+        conn.request("POST", "/char/SkillInTraining.xml.aspx", params, headers)
+    elif item == "skilltree":
+        conn.request("POST", "/eve/SkillTree.xml.aspx", params, headers) # no real inputs required
+    elif item == "reftypes":
+        conn.request("POST", "/eve/RefTypes.xml.aspx", params, headers) # no real inputs required
+    
+    response = conn.getresponse()
+
+    conn.close
+    
+    return response
+
+
+#_buildSkillTree({
+#    'characterID': 672389577, # Lucitania
+#    'userid': 1690689,
+#    'apikey': 'jdFQPL18o0TvoZ63KnQeVGE1kw8KQ7iJDFYNjhxc0RMLLpfgRAz5nod5MiuJElCB' # Public
+#    }) # Arbitray information for the pull
+
