@@ -170,6 +170,19 @@ def extractXML(filename):
         print "File not exist in location %s" % filename
         characterSheet.close()
     
+    # Prebuild the characterobject
+    characterobject = Character("Starting Up", -1, "Sometime Back")
+    
+    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    db_conn.query("select s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, g.group_id, s.description from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
+    
+    skills = db_conn.store_result()
+    
+    for row in range(skills.num_rows()):
+        skill = skills.fetch_row()[0]
+        characterobject.addSkill(Skill(skill[0], 0, 0, name=skill[1], rank=skill[2], primary=skill[3], secondary=skill[4], groupname=skill[5], groupid=skill[6], description=skill[7]))
+    
+    
     for line in characterSheet.readlines():
         if compile(""".*<currentTime>(.*)</currentTime>.*""").match(line):
             timeUpdated = compile(""".*<currentTime>(.*)</currentTime>.*""").match(line).groups()[0]
@@ -178,8 +191,10 @@ def extractXML(filename):
             characterID = compile(""".*<characterID>(.*)</characterID>.*""").match(line).groups()[0]
         
         if compile(""".*<name>(.*)</name>.*""").match(line):
-            characterobject = Character(compile(""".*<name>(.*)</name>.*""").match(line).groups()[0], characterID=characterID, timeUpdated=timeUpdated)
-        
+            characterobject.name = compile(""".*<name>(.*)</name>.*""").match(line).groups()[0]
+            characterobject.characterID = characterID
+            characterobject.timeUpdated = timeUpdated
+            
         if compile(""".*<race>(.*)</race>.*""").match(line):
             characterobject.race = compile(""".*<race>(.*)</race>.*""").match(line).groups()[0]
         
@@ -228,7 +243,15 @@ def extractXML(filename):
         
         if compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line):
             skillInfo = compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line).groups()
-            characterobject.addSkill(Skill(skillInfo[0], skillInfo[1], skillInfo[2]))
+            
+            id = int(skillInfo[0])
+            skillpoints = int(skillInfo[1])
+            level = int(skillInfo[2])
+            
+            if id in characterobject.skillset:
+                characterobject.editSkill(id, skillpoints=skillpoints, level=level) # If the skill exists, update it
+            else:
+                characterobject.addSkill(Skill(id, skillpoints, level)) # if not, build it out
         
         if compile(""".*<row certificateID="(.*)" />.*""").match(line):
             characterobject.editCertificate(compile(""".*<row certificateID="(.*)" />.*""").match(line).groups()[0])

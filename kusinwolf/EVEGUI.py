@@ -12,11 +12,12 @@ from EVEDatabase import extractAPI
 #http://zetcode.com/wxpython/
 
 ID_QUIT = 1
-ID_LEVEL1 = 100
-ID_LEVEL2 = 101
-ID_LEVEL3 = 102
-ID_LEVEL4 = 103
-ID_LEVEL5 = 104
+ID_LEVEL0 = 100
+ID_LEVEL1 = 101
+ID_LEVEL2 = 102
+ID_LEVEL3 = 103
+ID_LEVEL4 = 104
+ID_LEVEL5 = 105
 
 class BottomPanel(wx.Panel):
     def __init__(self, parent, id, cObject):
@@ -56,7 +57,7 @@ class BottomPanel(wx.Panel):
         self.rank.SetLabel(ranklist)
 
 class Browser(wx.Frame):
-    def __init__(self, parent, id, title, cObject, size=(400, 1024)):
+    def __init__(self, parent, id, title, cObject, size=(500, 1024)):
         self.cObject = cObject # ChacterObject passed in
         # The entire window
         wx.Frame.__init__(self, parent, id, title, size) # Width, Height
@@ -109,11 +110,14 @@ class Browser(wx.Frame):
         # Creating buttons
         hbox5 = wx.BoxSizer(wx.HORIZONTAL)
         
-        btn = wx.Button(panel, ID_LEVEL1, 'Level 1', size=(70, 30))
+        btn = wx.Button(panel, ID_LEVEL0, 'Level 0', size=(70, 30))
         hbox5.Add(btn, 0)
         
+        btn = wx.Button(panel, ID_LEVEL1, 'level 1', size=(70, 30))
+        hbox5.Add(btn, 0, wx.LEFT, 5)
+        
         btn = wx.Button(panel, ID_LEVEL2, 'Level 2', size=(70, 30))
-        hbox5.Add(btn, 0, wx.LEFT , 5)
+        hbox5.Add(btn, 0, wx.LEFT, 5)
         
         btn = wx.Button(panel, ID_LEVEL3, 'Level 3', size=(70, 30))
         hbox5.Add(btn, 0, wx.LEFT, 5)
@@ -127,6 +131,7 @@ class Browser(wx.Frame):
         vbox.Add(hbox5, 0, wx.ALIGN_CENTER | wx.CENTER, 10)
         
         # Binds a user generated event to the OnQuit method
+        self.Bind(wx.EVT_BUTTON, self.OnLevel0, id=ID_LEVEL0)
         self.Bind(wx.EVT_BUTTON, self.OnLevel1, id=ID_LEVEL1)
         self.Bind(wx.EVT_BUTTON, self.OnLevel2, id=ID_LEVEL2)
         self.Bind(wx.EVT_BUTTON, self.OnLevel3, id=ID_LEVEL3)
@@ -150,6 +155,9 @@ class Browser(wx.Frame):
         self.Show(True)
         
         #panel.SetSize((400,400)) Is this even used?
+    
+    def OnLevel0(self, event):
+        self.bottompanel.DisplayLevel(0)
     
     def OnLevel1(self, event):
         self.bottompanel.DisplayLevel(1)
