@@ -186,7 +186,7 @@ class Character(object):
             return slist
 
     def buildLevels(self):
-        '''Builds the level1-5 attributes for %s''' % self.name
+        '''Builds the level0-5 attributes for %s''' % self.name
         for level in range(6):
             self.__setattr__("level%s" % level, self.getSkillsAtLevel(level))
     
