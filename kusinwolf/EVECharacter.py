@@ -88,32 +88,61 @@ class Title(Role):
         return "<Title %s>" % self.name
 
 class Character(object):
-    def __init__(self, name, characterID=None,
-                 race=None, bloodline=None, gender=None, corporationName=None, corporationID=None,
-                 cloneName=None, cloneSkillPoints=None, balance=None, timeUpdated=None, intellegence=None,
-                 memory=None, perception=None, willpower=None, charisma=None):
+    def __init__(self, name, **kws):
         '''At least the name is required for the character to be generated'''
         
-        if characterID:
-            characterID = int(characterID)
-        if corporationID:
-            corporationID = int(corporationID)
-        if cloneSkillPoints:
-            cloneSkillPoints = int(cloneSkillPoints)
-        if balance:
-            balance = int(balance)
-            
-        self.characterID = characterID
         self.name = name
-        self.race = race
-        self.bloodline = bloodline
-        self.gender = gender
-        self.corporationName = corporationName
-        self.corporationID = corporationID
-        self.cloneName = cloneName
-        self.cloneSkillPoints = cloneSkillPoints
-        self.balance = balance
-        self.timeUpdated = timeUpdated
+        
+        # Start everything off as None to reduce the else statements
+        intellegence = None
+        memory = None
+        perception = None
+        willpower = None
+        charisma = None
+        self.characterID = None
+        self.race = None
+        self.bloodline = None
+        self.gender = None
+        self.corporationName = None
+        self.corporationID = None
+        self.cloneName = None
+        self.cloneSkillPoints = None
+        self.balance = None
+        self.timeUpdated = None
+        self.currentlyTraining = None
+        
+        if kws.has_key("characterID") and kws["characterID"]:
+            self.characterID = int(kws["characterID"])
+            
+        if kws.has_key("race") and kws["race"]:
+            self.race = kws["race"]
+            
+        if kws.has_key("bloodline") and kws["bloodline"]:
+            self.bloodline = kws["bloodline"]
+            
+        if kws.has_key("gender") and kws["gender"]:
+            self.gender = kws["gender"]
+            
+        if kws.has_key("corporationName") and kws["corporationName"]:
+            self.corporationName = kws["corporationName"]
+            
+        if kws.has_key("corporationID") and kws["corporationID"]:
+            self.corporationID = int(kws["corporationID"])
+            
+        if kws.has_key("cloneName") and kws["cloneName"]:
+            self.cloneName = kws["cloneName"]
+            
+        if kws.has_key("cloneSkillPoints") and kws["cloneSkillPoints"]:
+            self.cloneSkillPoints = int(["cloneSkillPoints"])
+            
+        if kws.has_key("balance") and kws["balance"]:
+            self.balance = int(kws["balance"])
+            
+        if kws.has_key("timeUpdated") and kws["timeUpdated"]:
+            self.timeUpdated = kws["timeUpdated"]
+            
+        if kws.has_key("currentlyTraining") and kws["currentlyTraining"]:
+            self.currentlyTraining = kws["currentlyTraining"]
         
         # This set of information must be run through their edit methods manually at the moment
         self.augmentations = {}
@@ -124,6 +153,21 @@ class Character(object):
         self.corporationRolesAtBase = {}
         self.corporationRolesAtOther = {}
         self.corporationTitles = {}
+        
+        if kws.has_key("intellegence") and kws["intellegence"]:
+            intellegence = kws['intellegence']
+            
+        if kws.has_key("memory") and kws["memory"]:
+            memory = kws["memory"]
+            
+        if kws.has_key("perception") and kws["perception"]:
+            perception = kws["perception"]
+            
+        if kws.has_key("willpower") and kws["willpower"]:
+            willpower = kws["willpower"]
+            
+        if kws.has_key("charisma") and kws["charisma"]:
+            charisma = kws["charisma"]
         
         # Edit attributes if any
         self.attributes(intellegence, memory, perception, willpower, charisma)
@@ -246,6 +290,12 @@ class Character(object):
         else:
             print "Skill does not exist in set"
     
+    def getSkill(self, id):
+        for skill in self.skillset:
+            if skill == id:
+                return skill
+        return None
+    
     def editAugmentation(self, slot, name, value, delete=False):
         '''
         editing a non existent skill is the same as adding\n
@@ -339,3 +389,9 @@ class Character(object):
             self.corporationTitles[id].name = name
         else:
             self.corporationTitles[id] = Title(id, name)
+    
+    def setCurrentlyTraining(self, skill):
+        '''
+            Only takes an object of the Skill class
+        '''
+        self.currentlyTraining = skill

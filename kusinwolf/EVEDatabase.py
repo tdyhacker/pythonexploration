@@ -2,6 +2,8 @@ from re import compile
 import httplib, urllib
 import MySQLdb
 from EVECharacter import Skill, Character, Certificate, Augmentation, Title
+import threading
+import time
 
 # Required modules
 # - easy_install mysql-python
@@ -152,6 +154,96 @@ def _buildSkillTree(params):
     #        for requiredSkill in requiredSkillsList:
     #            SKILLTREE[skill].dependencies[requiredSkill] = SKILLTREE[requiredSkill]
 
+def getSkillInDatabase(columns=["skill_id","skill_name"], id="Null", name="Null"):
+    '''
+        Enter a single id and/or name and/or a list of ids and/or names
+        example call: getSkillInDatabase(id=12099, name="Caldari Battleship)
+        
+        returns a list of tuples ordered (id, name)
+    '''
+    
+    info = {}
+    info['skilltable'] = TABLE_SKILL
+    info['grouptable'] = TABLE_GROUP
+    info['attributetable'] = TABLE_ATTRIBUTE
+    info['skillname'] = name
+    info['skillid'] = id
+    query = "SELECT "
+    
+    if type(columns) == list and "*" not in columns:
+        for column in columns:
+            if column not in ["primary_attribute","secondary_attribute","groupname","primary_attribute_id","secondary_attribute_id","groupname_id"]:
+                query += "%s" % column
+                if column != columns[len(columns) - 1]:
+                    query += ", "
+    elif type(columns) == list and "*" in columns:
+        # Error, you broke my heart :D
+        return "ERROR: Query can not contain column names and an all delimiter at the same time"
+    
+    if columns == "*":
+        columns = [("skill_id", "skill_name", "rank", "primary_attribute", "secondary_attribute", "groupname", "description")]
+        
+        # Full query
+        query += "s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, s.description from %(skilltable)s s join %(attributetable)s a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id where " % info
+    else:
+        pa = False
+        sa = False
+        gn = False
+        
+        if "primary_attribute" in columns or "primary_attribute_id" in columns:
+            ", a1.attribute_name primary_attribute"
+        if "secondary_attribute" in columns or "secondary_attribute_id" in columns:
+            ", a2.attribute_name secondary_attribute"
+        if "groupname" in columns or "groupname_id" in columns:
+            ", g.group_name group_name"
+        
+        query += " from %(skilltable)s" % info
+        
+        if pa:
+            query += " join %(attributetable)s a1 on s.primary_attribute_id = a1.id" % info
+        if sa:
+            query += " join %(attributetable)s a2 on s.secondary_attribute_id = a2.id" % info
+        if gn:
+            query += " join %(grouptable)s g on s.groupname_id = g.id" % info
+        
+        query += " where "
+    
+    if type(info['skillname']) == list:
+        for element in info['skillname']:
+            query += "skill_name = '%s' " % element
+            if element != info['skillname'][len(info['skillname'])-1]:
+                query += "or "
+    elif info['skillname'] != 'Null':
+        query += "skill_name = '%s' " % info['skillname']
+    
+    if type(info['skillid']) == list:
+        if info['skillname']:
+            query += "or "
+        for element in info['skillid']:
+            query += "skill_id = %s " % element
+            if element != info['skillid'][len(info['skillid'])-1]:
+                query += "or "
+    elif info['skillid']:
+        if info['skillname'] != 'Null':
+            query += "or skill_id = %s" % info['skillid']
+        else:
+            query += "skill_id = %s" % info['skillid']
+    
+    print query
+    
+    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    db_conn.query(query)
+    
+    returned = db_conn.store_result()
+    
+    requested = columns
+    
+    for row in range(returned.num_rows()):
+        requested.append(returned.fetch_row()[0])
+    
+    return requested
+
+
 def extractXML(filename):
     '''
     filename is the string in which the file is located on the hard disk\n
@@ -171,7 +263,7 @@ def extractXML(filename):
         characterSheet.close()
     
     # Prebuild the characterobject
-    characterobject = Character("Starting Up", -1, "Sometime Back")
+    characterobject = Character("Starting Up", characterID=-1, timeUpdated="Sometime Back")
     
     db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
     db_conn.query("select s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, g.group_id, s.description from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
@@ -291,7 +383,7 @@ def extractAPI(params):
     characterobject = None
     slot = 1
 
-    characterobject = Character("Starting Up", -1, "Sometime Back")
+    characterobject = Character("Starting Up", characterID=-1, timeUpdated="Sometime Back")
     
     db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
     db_conn.query("select s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, g.group_id, s.description from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
@@ -398,15 +490,67 @@ def extractAPI(params):
             titleInfo = compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line).groups()
             characterobject.corporationRoles(titleInfo[0], titleInfo[1])
 
+    # Read in this information while the rest is being built
+    class Threading(threading.Thread):
+        def __init__(self, function, cObject, params):
+            threading.Thread.__init__(self)
+            self.function = function
+            self.cObject = cObject
+            self.params = params
+        
+        def run(self):
+            self.function(self.cObject, self.params)
+            self._Thread__stop()
+        
+    assigning = Threading(assignCurrentlyTraining, characterobject, params)
+    assigning.start()
+    
     return characterobject
 
+def assignCurrentlyTraining(cObject, params):
+    '''
+        Adjusts the currently training skill to 
+    '''
+
+    response = apiSelect("skillintraining", params)
+    
+    response = response.read()
+    
+    skillintraining = None
+    
+    for line in response.split("\r\n"):
+        if compile(""".*<skillInTraining>(.*)</skillInTraining>.*""").match(line):
+            skillintraining = int(compile(""".*<skillInTraining>(.*)</skillInTraining>.*""").match(line).groups()[0])
+        
+        if compile(""".*<trainingEndTime>(.*)</trainingEndTime>.*""").match(line):
+            endtime = compile(""".*<trainingEndTime>(.*)</trainingEndTime>.*""").match(line).groups()[0]
+        
+        if compile(""".*<trainingStartTime>(.*)</trainingStartTime>.*""").match(line):
+            starttime = compile(""".*<trainingStartTime>(.*)</trainingStartTime>.*""").match(line).groups()[0]
+        
+        if compile(""".*<trainingTypeID>(.*)</trainingTypeID>.*""").match(line):
+            skillid = int(compile(""".*<trainingTypeID>(.*)</trainingTypeID>.*""").match(line).groups()[0])
+        
+        if skillintraining and skillintraining == 0:
+            cObject.setCurrentlyTraining(Skill(-1, 0, 0, name="Nothing Training"))
+        elif skillintraining and skillintraining == 1:
+            skill = getSkillInDatabase("*", id=skillid)[1]
+            time.sleep(3)
+            cSkill = Skill(id=skill[0], skillpoints=cObject.getSkill(skill[0]).skillpoints, level=cObject.getSkill(skill[0]).level, name=skill[1], rank=skill[2], primary=skill[3], secondary=skill[4], groupname=skill[5], description=skill[6])
+            # Special attributes for the currently trainning skill
+            cSkill.__setattr__("trainingLevel", (cSkill.level + 1))
+            cSkill.__setattr__("finishing", endtime)
+            cSkill.__setattr__("started", starttime)
+            cObject.setCurrentlyTraining(cSkill)
+
+
 def apiSelect(item, params):
-    '''Options:\n
-        \tWalletTransactions    : requires full API key\n
-        \tCharacterSheet        : Returns the current character sheet\n
-        \tSkillInTraining       : Returns the current skill trainning, 0 for no skill\n
-        \tSkillTree             : Returns the entire skill tree for EVE\n
-        \tRefTypes              : Returns the reference types for the wallet\n
+    '''Options:
+        \tWalletTransactions    : requires full API key
+        \tCharacterSheet        : Returns the current character sheet
+        \tSkillInTraining       : Returns the current skill trainning, 0 for no skill
+        \tSkillTree             : Returns the entire skill tree for EVE
+        \tRefTypes              : Returns the reference types for the wallet
     '''
 
     params = urllib.urlencode( params )
@@ -427,6 +571,8 @@ def apiSelect(item, params):
         conn.request("POST", "/eve/SkillTree.xml.aspx", params, headers) # no real inputs required
     elif item == "reftypes":
         conn.request("POST", "/eve/RefTypes.xml.aspx", params, headers) # no real inputs required
+    else:
+        return "Error: Not a selection in the list"
     
     response = conn.getresponse()
 
