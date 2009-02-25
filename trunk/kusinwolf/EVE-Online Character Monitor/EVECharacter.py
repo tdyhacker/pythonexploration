@@ -22,6 +22,7 @@ class Skill(object):
         self.level3rank1 = 8000     # 8,000
         self.level4rank1 = 45255    # 45,255
         self.level5rank1 = 256000   # 256,000
+        
     
     def __repr__(self):
         return "<Skill %s - Points %s - Level %s - Rank %sx>" % (self.name, self.skillpoints, self.level, self.rank)
@@ -92,6 +93,7 @@ class Character(object):
         '''At least the name is required for the character to be generated'''
         
         self.name = name
+        self.ready = False # waiting on all the skill parsing to be finished
         
         # Start everything off as None to reduce the else statements
         intellegence = None

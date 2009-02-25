@@ -33,6 +33,7 @@ import time
 DATABASE_NAME = "personal_db1" # Database to connect to
 DATABASE_USER = "kusinwolf" # The name of the user with permission to connect
 DATABASE_HOST = "localhost" # Location of the database, if it be online or somewhere else
+DATABASE_PASSWORD = "" # Password to connect
 
 TABLE_SKILL = "skill"
 TABLE_GROUP = "groups"
@@ -50,7 +51,10 @@ def _buildSkillTree(params):
     info['description'] = "" # There may not be a description
     
     # connection to the database
-    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    if DATABASE_PASSWORD != "":
+        db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST, password=DATABASE_PASSWORD)
+    else:
+        db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
     db_conn.autocommit(True)
     
     # Get the tree from the API
@@ -184,7 +188,7 @@ def getSkillInDatabase(columns=["skill_id","skill_name"], id="Null", name="Null"
         columns = [("skill_id", "skill_name", "rank", "primary_attribute", "secondary_attribute", "groupname", "description")]
         
         # Full query
-        query += "s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, s.description from %(skilltable)s s join %(attributetable)s a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id where " % info
+        query += "s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, s.description from %(skilltable)s s join %(attributetable)s a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id" % info
     else:
         pa = False
         sa = False
@@ -205,31 +209,29 @@ def getSkillInDatabase(columns=["skill_id","skill_name"], id="Null", name="Null"
             query += " join %(attributetable)s a2 on s.secondary_attribute_id = a2.id" % info
         if gn:
             query += " join %(grouptable)s g on s.groupname_id = g.id" % info
-        
+    
+    if id != "Null" or name != "Null":
         query += " where "
-    
-    if type(info['skillname']) == list:
-        for element in info['skillname']:
-            query += "skill_name = '%s' " % element
-            if element != info['skillname'][len(info['skillname'])-1]:
+        if type(info['skillname']) == list:
+            for element in info['skillname']:
+                query += "skill_name = '%s' " % element
+                if element != info['skillname'][len(info['skillname'])-1]:
+                    query += "or "
+        elif info['skillname'] != 'Null':
+            query += "skill_name = '%s' " % info['skillname']
+        
+        if type(info['skillid']) == list:
+            if info['skillname']:
                 query += "or "
-    elif info['skillname'] != 'Null':
-        query += "skill_name = '%s' " % info['skillname']
-    
-    if type(info['skillid']) == list:
-        if info['skillname']:
-            query += "or "
-        for element in info['skillid']:
-            query += "skill_id = %s " % element
-            if element != info['skillid'][len(info['skillid'])-1]:
-                query += "or "
-    elif info['skillid']:
-        if info['skillname'] != 'Null':
-            query += "or skill_id = %s" % info['skillid']
-        else:
-            query += "skill_id = %s" % info['skillid']
-    
-    print query
+            for element in info['skillid']:
+                query += "skill_id = %s " % element
+                if element != info['skillid'][len(info['skillid'])-1]:
+                    query += "or "
+        elif info['skillid']:
+            if info['skillname'] != 'Null':
+                query += "or skill_id = %s" % info['skillid']
+            else:
+                query += "skill_id = %s" % info['skillid']
     
     db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
     db_conn.query(query)
@@ -265,7 +267,11 @@ def extractXML(filename):
     # Prebuild the characterobject
     characterobject = Character("Starting Up", characterID=-1, timeUpdated="Sometime Back")
     
-    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    if DATABASE_PASSWORD != "":
+        db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST, password=DATABASE_PASSWORD)
+    else:
+        db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+        
     db_conn.query("select s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, g.group_id, s.description from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
     
     skills = db_conn.store_result()
@@ -377,6 +383,19 @@ def extractAPI(params):
     a key is required to connect to the API
     returns a characterobject
     '''
+    
+    # Read in this information while the rest is being built
+    class Threading(threading.Thread):
+        def __init__(self, function, cObject, params):
+            threading.Thread.__init__(self)
+            self.function = function
+            self.cObject = cObject
+            self.params = params
+        
+        def run(self):
+            self.function(self.cObject, self.params)
+            self._Thread__stop()
+    
     timeUpdated = None
     characterID = None
     augmentorName = None
@@ -385,7 +404,7 @@ def extractAPI(params):
 
     characterobject = Character("Starting Up", characterID=-1, timeUpdated="Sometime Back")
     
-    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST)
+    db_conn = MySQLdb.connection(user=DATABASE_USER, db=DATABASE_NAME, host=DATABASE_HOST, passwd=DATABASE_PASSWORD)
     db_conn.query("select s.skill_id, s.skill_name, s.rank, a1.attribute_name primary_attribute, a2.attribute_name secondary_attribute, g.group_name group_name, g.group_id, s.description from %(skilltable)s s join attribute a1 on s.primary_attribute_id = a1.id join %(attributetable)s a2 on s.secondary_attribute_id = a2.id join %(grouptable)s g on s.groupname_id = g.id order by s.groupname_id, s.rank" % {'skilltable': TABLE_SKILL, 'grouptable': TABLE_GROUP, 'attributetable': TABLE_ATTRIBUTE})
     
     skills = db_conn.store_result()
@@ -409,6 +428,9 @@ def extractAPI(params):
             characterobject.name = compile(""".*<name>(.*)</name>.*""").match(line).groups()[0]
             characterobject.characterID = characterID
             characterobject.timeUpdated = timeUpdated
+            
+            buildingSkills = Threading(gatherAllBasicSkills, characterobject, params)
+            buildingSkills.start()
         
         if compile(""".*<race>(.*)</race>.*""").match(line):
             characterobject.race = compile(""".*<race>(.*)</race>.*""").match(line).groups()[0]
@@ -457,6 +479,9 @@ def extractAPI(params):
             characterobject.willpower = compile(""".*<willpower>(.*)</willpower>.*""").match(line).groups()[0]
         
         if compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line):
+            while not characterobject.ready:
+                continue # wait on all the skills to be assigned
+            
             skillInfo = compile(""".*<row typeID="(.*)" skillpoints="(.*)" level="(.*)" />.*""").match(line).groups()
             id = int(skillInfo[0])
             skillpoints = int(skillInfo[1])
@@ -489,23 +514,22 @@ def extractAPI(params):
         if compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line):
             titleInfo = compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line).groups()
             characterobject.corporationRoles(titleInfo[0], titleInfo[1])
-
-    # Read in this information while the rest is being built
-    class Threading(threading.Thread):
-        def __init__(self, function, cObject, params):
-            threading.Thread.__init__(self)
-            self.function = function
-            self.cObject = cObject
-            self.params = params
-        
-        def run(self):
-            self.function(self.cObject, self.params)
-            self._Thread__stop()
         
     assigning = Threading(assignCurrentlyTraining, characterobject, params)
     assigning.start()
     
     return characterobject
+
+def gatherAllBasicSkills(cObject, *args, **kws):
+    '''
+        Grabs all the skills from the database and assigns them to self
+    '''
+    db_response = getSkillInDatabase("*")
+    db_response = db_response[1:]
+    
+    for row in db_response:
+        cObject.addSkill(Skill(id=int(row[0]), skillpoints=0, level=0, name=row[1], rank=int(row[2]), primary=row[3], secondary=row[4], groupname=row[5], groupid=-1, description=row[6]))
+        cObject.ready = True
 
 def assignCurrentlyTraining(cObject, params):
     '''
@@ -521,6 +545,7 @@ def assignCurrentlyTraining(cObject, params):
     for line in response.split("\r\n"):
         if compile(""".*<skillInTraining>(.*)</skillInTraining>.*""").match(line):
             skillintraining = int(compile(""".*<skillInTraining>(.*)</skillInTraining>.*""").match(line).groups()[0])
+            print skillintraining
         
         if compile(""".*<trainingEndTime>(.*)</trainingEndTime>.*""").match(line):
             endtime = compile(""".*<trainingEndTime>(.*)</trainingEndTime>.*""").match(line).groups()[0]
@@ -531,9 +556,11 @@ def assignCurrentlyTraining(cObject, params):
         if compile(""".*<trainingTypeID>(.*)</trainingTypeID>.*""").match(line):
             skillid = int(compile(""".*<trainingTypeID>(.*)</trainingTypeID>.*""").match(line).groups()[0])
         
-        if skillintraining and skillintraining == 0:
+        if skillintraining == 0:
             cObject.setCurrentlyTraining(Skill(-1, 0, 0, name="Nothing Training"))
-        elif skillintraining and skillintraining == 1:
+        elif skillintraining == 1:
+            while not cObject.ready:
+                continue # Wait on all the skills to finish parsing
             skill = getSkillInDatabase("*", id=skillid)[1]
             time.sleep(3)
             cSkill = Skill(id=skill[0], skillpoints=cObject.getSkill(skill[0]).skillpoints, level=cObject.getSkill(skill[0]).level, name=skill[1], rank=skill[2], primary=skill[3], secondary=skill[4], groupname=skill[5], description=skill[6])
