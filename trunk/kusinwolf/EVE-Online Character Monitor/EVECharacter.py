@@ -94,6 +94,7 @@ class Character(object):
         
         self.name = name
         self.ready = False # waiting on all the skill parsing to be finished
+        self.readingAPI = False # If reading from API, lock the port to prevent collisions
         
         # Start everything off as None to reduce the else statements
         intellegence = None
@@ -226,7 +227,7 @@ class Character(object):
             return "Error: Unable to gather skills that are not currently trained [Functionality to arrive in the future]"
         else:
             slist = []
-            for skill in self.skillset:
+            for skill in self.skillset.copy(): # prevents the race condition with the size changing
                 if self.skillset[skill].level == level:
                     slist.append(self.skillset[skill])
             return slist
@@ -293,10 +294,11 @@ class Character(object):
             print "Skill does not exist in set"
     
     def getSkill(self, id):
-        for skill in self.skillset:
-            if skill == id:
-                return skill
-        return None
+        id = int(id)
+        if id in self.skillset:
+            return self.skillset[id]
+        else:
+            return None
     
     def editAugmentation(self, slot, name, value, delete=False):
         '''
