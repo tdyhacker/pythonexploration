@@ -16,6 +16,19 @@ def init_model(engine):
     meta.engine = engine
 
 
+titles_table = sa.Table("titles", meta.metadata,
+    sa.Column("id", sa.types.Integer, primary_key=True),
+    sa.Column("name", sa.types.Text),
+    sa.Column("release_date", sa.types.Date),
+    sa.Column("duration", sa.types.Integer),
+    sa.Column("rating", sa.types.String(5))
+    )
+
+class Title(object):
+    pass
+
+orm.mapper(Title, titles_table)
+
 ## Non-reflected tables may be defined and mapped at module level
 #foo_table = sa.Table("Foo", meta.metadata,
 #    sa.Column("id", sa.types.Integer, primary_key=True),
