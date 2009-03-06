@@ -4,6 +4,11 @@ from sqlalchemy import orm
 
 from movies.model import meta
 
+from titles import Title, titles_table
+from actors import Actor, actors_table
+from categories import Category, categories_table
+from title_actor_xref import title_actor_xref_table
+
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     ## Reflected tables must be defined and mapped here
@@ -15,19 +20,11 @@ def init_model(engine):
     meta.Session.configure(bind=engine)
     meta.engine = engine
 
+orm.mapper(Title, titles_table, properties={'category':orm.relation(Category, backref="titles"),
+                                            'actors':orm.relation(Actor, secondary=title_actor_xref_table, backref="titles")})
+orm.mapper(Actor, actors_table)
+orm.mapper(Category, categories_table)
 
-titles_table = sa.Table("titles", meta.metadata,
-    sa.Column("id", sa.types.Integer, primary_key=True),
-    sa.Column("name", sa.types.Text),
-    sa.Column("release_date", sa.types.Date),
-    sa.Column("duration", sa.types.Integer),
-    sa.Column("rating", sa.types.String(5))
-    )
-
-class Title(object):
-    pass
-
-orm.mapper(Title, titles_table)
 
 ## Non-reflected tables may be defined and mapped at module level
 #foo_table = sa.Table("Foo", meta.metadata,
