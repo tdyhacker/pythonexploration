@@ -38,7 +38,7 @@ class HeaderPanel(wx.Panel):
         self.skillname = wx.StaticText(panel, -1, '\nCurrently Training: %s' % self.cObject.currentlyTraining.name)
         self.skillfinishes = wx.StaticText(panel, -1, '\n\nCompletes: %s' % self.cObject.currentlyTraining.EndTime)
         
-        self.SetSizer(hbox)
+        #self.SetSizer(hbox)
     
     def OnUpdate(self):
         self.charactername.SetLabel('Character Name: %s' % self.cObject.name)
