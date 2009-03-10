@@ -304,7 +304,7 @@ class DatabaseControl(object):
         # Prebuild the cObject
         cObject = Character("Starting Up", characterID=-1, timeUpdated="Sometime Back")
         
-        buildingSkills = self.Threading(self.gatherAllBasicSkills, cObject)
+        buildingSkills = self.Threading(self.gatherAllBaseSkills, cObject)
         buildingSkills.start()
         
         # default training skill
@@ -369,16 +369,17 @@ class DatabaseControl(object):
                 if compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line):
                     titleInfo = compile(""".*<row titleID="(.*)" titleName="(.*)" />.*""").match(line).groups()
                     cObject.corporationRoles(titleInfo[0], titleInfo[1])
-    
+                
             if filename:
                 charactersheet.close()
             else:
+                print "extracting"
                 buildingSkills = self.Threading(self.assignCurrentlyTraining, cObject)
                 buildingSkills.start()
         
         return cObject
     
-    def gatherAllBasicSkills(self, cObject):
+    def gatherAllBaseSkills(self, cObject):
         '''
             Grabs all the skills from the database and assigns them to self
         '''
@@ -454,7 +455,12 @@ class DatabaseControl(object):
             return "Error: Not a selection in the list"
         
         response = conn.getresponse()
-    
+        
+        check = response
+        check = check.read()
+        if check == '<h1>Bad Request (Invalid Hostname)</h1>':
+            print "ERROR: API Call Failed"
+        
         conn.close
         
         return response
