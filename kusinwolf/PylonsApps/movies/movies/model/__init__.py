@@ -7,7 +7,7 @@ from movies.model import meta
 from titles import Title, titles_table
 from actors import Actor, actors_table
 from categories import Category, categories_table
-from title_actor_xref import title_actor_xref_table
+from title_actor_xref import title_actor_xref_table, Character
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
@@ -21,9 +21,10 @@ def init_model(engine):
     meta.engine = engine
 
 orm.mapper(Title, titles_table, properties={'category':orm.relation(Category, backref="titles"),
-                                            'actors':orm.relation(Actor, secondary=title_actor_xref_table, backref="titles")})
+                                            'characters':orm.relation(Character, backref="titles")})
 orm.mapper(Actor, actors_table)
 orm.mapper(Category, categories_table)
+orm.mapper(Character, title_actor_xref_table, properties={"actor": orm.relation(Actor)})
 
 
 ## Non-reflected tables may be defined and mapped at module level

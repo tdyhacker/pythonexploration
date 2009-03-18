@@ -12,7 +12,6 @@ titles_table = sa.Table("titles", meta.metadata,
     sa.Column("duration", sa.types.Integer),
     sa.Column("rating", sa.types.String(5)),
     sa.Column("category_id", sa.types.Integer, sa.ForeignKey("categories.id"), nullable=False),
-    #sa.column("title_actor_xref_id", sa.types.Integer, sa.ForeignKey("title_actor_xref.title_id"))
     )
 
 class Title(object):
@@ -27,3 +26,6 @@ class Title(object):
         self.duration = kws['duration']
         self.rating = kws['rating']
         self.categories = kws['categories']
+    
+    def __repr__(self):
+        return "<%s: %s, %s>" % (self.__class__, self.name, self.release_date)
