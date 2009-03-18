@@ -20,6 +20,7 @@ class Data(object):
                 self.__setattr__(col, row[r])
             r += 1
         del r
+    
     def __repr__(self):
         values = ""
         names = self.__dict__.keys()
@@ -31,7 +32,6 @@ class Data(object):
         return "<Data%s>" % values
 
 for row in randomReader:
-    
     if columns == None:
         columns = row
     else:
