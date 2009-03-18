@@ -16,3 +16,6 @@ class Actor(object):
         self.first_name = kws['first_name']
         self.last_name = kws['last_name']
         self.birthday = kws['birthday']
+
+    def __repr__(self):
+        return "<%s: %s, %s>" % (self.__class__, self.last_name, self.first_name)
