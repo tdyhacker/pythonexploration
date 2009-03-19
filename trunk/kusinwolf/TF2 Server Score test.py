@@ -13,6 +13,8 @@ class Server(threading.Thread):
         self.CANCONNECT = False
         self.timealive = 0
         self.killall = False
+        self.connections_over_time = {}
+        self.ban_list = {}
     
     def __repr__(self):
         return "<Score = %d>" % self.score
@@ -30,12 +32,26 @@ class Server(threading.Thread):
         # Race condition happening here
         self.CANCONNECT = False
         
-        self.players += 1
-        self.score -= 15
-        self.whom.append(player)
+        if player not in self.connections_over_time:
+            self.connections_over_time[player] = 1
+        else:
+            self.connections_over_time[player] += 1
         
-        player.timeplayed = 0
-        player.connected = True
+        if self.connections_over_time[player] > 5:
+            self.ban_list[player] = 5
+            print "Player", player, "has been banned for flooding"
+        
+        if player in self.ban_list:
+            print "Player", player, "was previously banned"
+            player.alive = False # kill that player, muwhahah
+            self.ban_list[player] += 5
+        else:
+            self.players += 1
+            self.score -= 15
+            self.whom.append(player)
+            
+            player.timeplayed = 0
+            player.connected = True
         
         if self.players >= self.playerlimit:
             self.CANCONNECT = False
@@ -46,11 +62,14 @@ class Server(threading.Thread):
     
     def playerLeave(self, player):
         self.players -= 1
-        self.whom.remove(player)
+        try:
+            self.whom.remove(player)
+        except:
+            print player.name, " was not found in the list of connected players"
         
         player.connected = False
         
-        if not self.CANCONNECT and not self.killall:
+        if not self.CANCONNECT and not self.killall and self.players < self.playerlimit:
             self.CANCONNECT = True
     
     def heartbeat(self):
@@ -62,6 +81,21 @@ class Server(threading.Thread):
                 self.score += 1
             
             player.continuePlaying()
+        
+        temp_dict = self.ban_list.copy()
+        for player in temp_dict:
+            if self.ban_list[player] > 0:
+                self.ban_list[player] -= 1
+            if self.ban_list[player] == 0:
+                self.ban_list.pop(player) # remove them from the ban list only after their time is up
+                # if their time goes into negative it is a perminate ban
+        
+        temp_dict = self.connections_over_time.copy()
+        for player in temp_dict:
+            if self.connections_over_time[player] > 0:
+                self.connections_over_time[player] -= 1
+            else:
+                self.connections_over_time.pop(player)
 
 myserver = Server()
 players = []
@@ -79,7 +113,7 @@ class Player(threading.Thread):
         self.name = name
     
     def __repr__(self):
-        return "<Player %s Prefers %d players for a max time of %d and is alive(%s) and connected (%s)>" % (self.name, self.PreferedPlayerSize, self.AllowedTimeToPlay, self.alive, self.connection)
+        return "<Player %s Prefers %d players for a max time of %d and is alive(%s) and connected (%s)>" % (self.name, self.PreferedPlayerSize, self.AllowedTimeToPlay, self.alive, self.connected)
     
     def run(self):
         while self.alive:
@@ -95,15 +129,23 @@ class Player(threading.Thread):
                     self.server.playerJoin(self)
                 elif self.server.players >= (self.PreferedPlayerSize - int(Random().random() * 4)):
                     self.server.playerJoin(self)
-    
+                elif self.name == "Griefer":
+                    self.server.playerJoin(self)
+        elif self.name == "Griefer":
+            self.server.playerLeave(self)
+
     def continuePlaying(self):
         if self.server.players < (self.PreferedPlayerSize - int(Random().random() * 4)) or self.timeplayed >= self.AllowedTimeToPlay:
             self.server.playerLeave(self)
             self.AllowedTimeToPlay = int(Random().random() * 60.0) + 1
 
-for x in range(128):
+for x in range(31):
     players.append(Player(x))
     players[x].start()
 
-#myserver.start()
-#myserver.CANCONNECT = True
+# Designed to try and ruin games
+players.append(Player("Griefer"))
+players[31].start()
+
+myserver.start()
+myserver.CANCONNECT = True
