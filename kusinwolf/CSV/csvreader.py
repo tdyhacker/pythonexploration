@@ -2,8 +2,8 @@ import csv
 from datetime import datetime
 from re import compile
 
-#randomReader = csv.reader(open('randomdata.csv', 'r'), delimiter='|')
-randomReader = csv.reader(open('randomdata2.csv', 'r'), delimiter='|')
+randomReader = csv.reader(open('randomdata.csv', 'r'), delimiter='|')
+#randomReader = csv.reader(open('randomdata2.csv', 'r'), delimiter='|')
 csvwriter = csv.writer(open('newrandom.csv', 'w'), delimiter='~')
 
 columns = None
