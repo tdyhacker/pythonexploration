@@ -16,16 +16,17 @@ titles_table = sa.Table("titles", meta.metadata,
 
 class Title(object):
     def __init__(self, **kws):
-        if type(kws['release_date']) != datetime:
-            newdate = compile("(\d{4})[-\s.~_|/\\]([0-1][0-9])[-\s.~_|/\\]([0-3][0-9])").match(kws['release_date'])
-            kws['release_date'] = datetime(newdate[0], newdate[1], newdate[2])
+        #if type(kws['release_date']) != datetime:
+            #newdate = compile("(\d{2})[-\s.~_|/\/](\d{2})[-\s.~_|/\/](\d{4})").match(kws['release_date']).groups()
+            #kws['release_date'] = datetime(month=int(newdate[0]), day=int(newdate[1]), year=int(newdate[2]))
+        kws['release_date'] = datetime(month=int(kws['month']), day=int(kws['day']), year=int(kws['year']))
         if type(kws['duration']) != int:
             kws['duration'] = int(kws['duration'])
         self.name = kws['name']
         self.release_date = kws['release_date']
         self.duration = kws['duration']
         self.rating = kws['rating']
-        self.categories = kws['categories']
+        self.category_id = kws['categories']
     
     def __repr__(self):
-        return "<%s: %s, %s>" % (self.__class__, self.name, self.release_date)
+        return "<%s: %s, %s, %s, %s>" % (self.__class__, self.name, self.release_date, self.release_date, self.category_id)
