@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-from sqlalchemy import Column, Table
-from sqlalchemy.types import Text, Integer, String
+from sqlalchemy import Column, Table, ForeignKey
+from sqlalchemy.types import Text, Integer, String, Date
 from sqlalchemy.orm import mapper, relation
 from datetime import datetime
 from re import compile
 
-from movies.model import meta
+from univaddbook.model import meta
 
 contacts_table = Table("contacts", meta.metadata,
     Column("id", Integer, primary_key=True),
@@ -24,25 +24,32 @@ contacts_table = Table("contacts", meta.metadata,
 
 contact_email_xref_table = Table("contact_email_xref", meta.metadata,
     Column("id", Integer, primary_key=True),
-    Column("contact_id", Integer, ForeignKey("contact.id")),
-    Column("email_id", Integer, ForeignKey("email.id")),
+    Column("contact_id", Integer, ForeignKey("contacts.id")),
+    Column("email_id", Integer, ForeignKey("emails.id")),
     )
 
 emails_table = Table("emails", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("email", Text),
-    Column("type_id", Integer, ForeignKey("id"), nullable=False),
+    Column("type_id", Integer, ForeignKey("types.id"), nullable=False),
     )
 
 types_table = Table("types", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("name", Text),
     )
+# Perfessional
+# Personal
+# Other
 
 relationships_table = Table("relationships", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("group", Text),
     )
+# Family
+# Friends
+# Co-workers
+# Other
 
 class Contact(object):
     pass
@@ -55,7 +62,7 @@ class Relationship(object):
 
 
 mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="people"),
-                                                'emails':relation(Email, secondary=contact_email_xref_table, backref="person")})
-mapper(Email, emails_table)
+                                            'emails':relation(Email, secondary=contact_email_xref_table, backref="person")})
+mapper(Email, emails_table, properties={'groups':relation(Type, backref="people")})
 mapper(Relationship, relationships_table)
 mapper(Type, types_table)
