@@ -1,61 +1,61 @@
 #!/usr/bin/env python
-import sqlalchemy as sa
-from sqlalchemy import orm
+from sqlalchemy import Column, Table
+from sqlalchemy.types import Text, Integer, String
+from sqlalchemy.orm import mapper, relation
 from datetime import datetime
 from re import compile
 
 from movies.model import meta
 
-titles_table = sa.Table("Some table name", meta.metadata,
-    sa.Column("id", sa.types.Integer, primary_key=True),
-    sa.Column("column", sa.types.Text),
-    sa.Column("column", sa.types.Date),
-    sa.Column("column", sa.types.Integer),
-    sa.Column("column", sa.types.String(5)),
-    sa.Column("column", sa.types.Integer, sa.ForeignKey("categories.id"), nullable=False),
+contacts_table = Table("contacts", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("first_name", Text),
+    Column("middle_name", Text),
+    Column("last_name", Text),
+    Column("nick_name", Text),
+    Column("birthday", Date),
+    Column("street_address", Text),
+    Column("state", String(2)),
+    Column("country", Text),
+    Column("city", Text),
+    Column("zipcode", Integer),
+    Column("relationship_id", Integer, ForeignKey("relationships.id")),
     )
 
-class d_b(object):
-    def __init__(self, **kws):
-        ":D"
-    
-    def __repr__(self):
-        return "Happy face"
-
-
-title_actor_xref_table = sa.Table("title_actor_xref", meta.metadata,
-    sa.Column("id", sa.types.Integer, primary_key=True),
-    sa.Column("actor_id", sa.types.Integer, sa.ForeignKey("actors.id")),
-    sa.Column("title_id", sa.types.Integer, sa.ForeignKey("titles.id")),
-    sa.Column("character_name", sa.types.Text)
+contact_email_xref_table = Table("contact_email_xref", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("contact_id", Integer, ForeignKey("contact.id")),
+    Column("email_id", Integer, ForeignKey("email.id")),
     )
 
-class Character(object):
-    def __init__(self, character_name):
-        self.character_name = character_name
-    
-    def __repr__(self):
-        return "<%s: %s>" % (self.__class__, self.character_name)
-
-
-actors_table = sa.Table("actors", meta.metadata,
-    sa.Column("id", sa.types.Integer, primary_key=True),
-    sa.Column("first_name", sa.types.Text),
-    sa.Column("last_name", sa.types.Text)
+emails_table = Table("emails", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("email", Text),
+    Column("type_id", Integer, ForeignKey("id"), nullable=False),
     )
 
-class Actor(object):
-    def __init__(self, **kws):
-        self.first_name = kws['first_name']
-        self.last_name = kws['last_name']
-        self.birthday = kws['birthday']
+types_table = Table("types", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("name", Text),
+    )
 
-    def __repr__(self):
-        return "<%s: %s, %s>" % (self.__class__, self.last_name, self.first_name)
+relationships_table = Table("relationships", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("group", Text),
+    )
+
+class Contact(object):
+    pass
+class Email(object):
+    pass
+class Type(object):
+    pass
+class Relationship(object):
+    pass
 
 
-orm.mapper(Title, titles_table, properties={'category':orm.relation(Category, backref="titles"),
-                                            'characters':orm.relation(Character, backref="titles")})
-orm.mapper(Actor, actors_table)
-orm.mapper(Category, categories_table)
-orm.mapper(Character, title_actor_xref_table, properties={"actor": orm.relation(Actor)})
+mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="people"),
+                                                'emails':relation(Email, secondary=contact_email_xref_table, backref="person")})
+mapper(Email, emails_table)
+mapper(Relationship, relationships_table)
+mapper(Type, types_table)

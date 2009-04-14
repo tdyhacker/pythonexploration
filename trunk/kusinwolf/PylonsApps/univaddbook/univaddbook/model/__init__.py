@@ -3,6 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from univaddbook.model import meta
+from univaddbook.model import tables
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
