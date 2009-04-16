@@ -41,12 +41,14 @@ a:link {
     color: #80B1FF;
     text-decoration: underline;
     font-weight: bold;
+    text-decoration: none
 }
 
 a:visited {
     color: #BFD8FF;
     text-decoration: underline;
     font-weight: bold;
+    text-decoration: none
 }
 
 a:hover {

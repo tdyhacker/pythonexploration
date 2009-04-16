@@ -75,14 +75,14 @@ class DatabaseControl(object):
         info['description'] = "" # There may not be a description
         
         # connection to the database
-        if DATABASE_PASSWORD != "":
+        if self.DATABASE_PASSWORD != "":
             db_conn = MySQLdb.connection(user=self.DATABASE_USER, db=self.DATABASE_NAME, host=self.DATABASE_HOST, password=self.DATABASE_PASSWORD)
         else:
             db_conn = MySQLdb.connection(user=self.DATABASE_USER, db=self.DATABASE_NAME, host=self.DATABASE_HOST)
         db_conn.autocommit(True)
         
         # Get the tree from the API
-        tree = apiSelect("skilltree")    
+        tree = self.apiSelect("skilltree")    
         
         skills = tree.read()
         
