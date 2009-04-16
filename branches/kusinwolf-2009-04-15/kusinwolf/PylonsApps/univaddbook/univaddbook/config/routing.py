@@ -22,6 +22,6 @@ def make_map():
 
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
-    map.connect('/', controller='bookcontrol', action='index')
+    map.connect('/', controller='uiadbook', action='index')
 
     return map
