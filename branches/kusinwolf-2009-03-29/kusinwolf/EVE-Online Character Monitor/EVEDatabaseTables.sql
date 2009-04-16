@@ -1,3 +1,0 @@
-CREATE TABLE groups (id INT NOT NULL AUTO_INCREMENT, group_name TEXT, group_id INT, PRIMARY KEY(id));
-CREATE TABLE attribute (id INT NOT NULL AUTO_INCREMENT, attribute_name TEXT, PRIMARY KEY(id));
-CREATE TABLE skill (id INT NOT NULL AUTO_INCREMENT, skill_id INT, skill_name TEXT, rank INT, primary_attribute_id INT, secondary_attribute_id INT, groupname_id INT, description TEXT, PRIMARY KEY(id), FOREIGN KEY (groupname_id) REFERENCES groups(id), FOREIGN KEY (primary_attribute_id) REFERENCES attribute(id), FOREIGN KEY (secondary_attribute_id) REFERENCES attribute(id));

@@ -1,3 +1,0 @@
-include univaddbook/config/deployment.ini_tmpl
-recursive-include univaddbook/public *
-recursive-include univaddbook/templates *

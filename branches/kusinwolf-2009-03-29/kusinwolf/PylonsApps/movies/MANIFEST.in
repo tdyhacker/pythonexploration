@@ -1,3 +1,0 @@
-include movies/config/deployment.ini_tmpl
-recursive-include movies/public *
-recursive-include movies/templates *
