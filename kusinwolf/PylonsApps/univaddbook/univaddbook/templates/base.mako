@@ -7,7 +7,7 @@
     ${next.body()}
     <BR />
     <div id='footer'>
-        ${self.footer()} <!-- Build out footer either by default or overwrite it -->
+      ${self.footer()} <!-- Build out footer either by default or overwrite it -->
     </div>
   </body>
 </html>
@@ -15,11 +15,13 @@
 <!-- Default assigned tags that if not defined throw an error -->
 
 <%def name="head_tags()">
-    <title>Default Name</title>
+  <title>Default Name</title>
 </%def>
 
 <%def name="footer()">
-    Site Map
-    <BR />
-    % for page in c.sitemap.iter
+  Site Map
+  <BR />
+  % for page in g.sitemap.iteritems():
+    ${h.link_to(page[0], h.url_for(action=page[1]))} | 
+  % endfor
 </%def>
