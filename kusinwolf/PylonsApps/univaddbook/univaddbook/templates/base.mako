@@ -21,5 +21,5 @@
 <%def name="footer()">
     Site Map
     <BR />
-    :D
+    % for page in c.sitemap.iter
 </%def>

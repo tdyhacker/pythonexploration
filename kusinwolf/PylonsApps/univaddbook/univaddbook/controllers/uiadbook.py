@@ -7,7 +7,7 @@ from univaddbook.lib.base import BaseController, render
 
 log = logging.getLogger(__name__)
 
-class BookcontrolController(BaseController):
+class UniaddbookController(BaseController):
     states = {
         "AL": "ALABAMA",
         "AK": "ALASKA",
@@ -71,3 +71,6 @@ class BookcontrolController(BaseController):
 
     def insert(self):
         return request.params.items()
+    
+    def _sitemap(self):
+        c.sitemap = {'homepage': 'uniaddbook/', 'contact_add': 'uniaddbook/contact_add/'}
