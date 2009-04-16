@@ -52,13 +52,31 @@ relationships_table = Table("relationships", meta.metadata,
 # Other
 
 class Contact(object):
-    pass
+    def __init__(self, *args):
+        self.first_name = first_name
+        self.middle_name = middle_name
+        self.last_name = last_name
+        self.nick_name = nick_name
+        self.birthday = birthday
+        self.street_address = street_address
+        self.state = state
+        self.country = country
+        self.city = city
+        self.zipcode = zipcode
+        self.relationship_id = relationship_id
+
 class Email(object):
     pass
+
 class Type(object):
     pass
+
 class Relationship(object):
-    pass
+    def __init__(self, group):
+        self.group = group
+    
+    def __repr__(self):
+        return "%s" % self.group
 
 
 mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="people"),

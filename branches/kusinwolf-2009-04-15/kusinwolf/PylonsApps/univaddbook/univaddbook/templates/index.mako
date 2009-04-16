@@ -3,4 +3,6 @@
     <title>Index</title>
 </%def>
 
-:D
+% for contact in c.contacts:
+    ${contact}<br />
+% endfor
