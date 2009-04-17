@@ -52,24 +52,24 @@ relationships_table = Table("relationships", meta.metadata,
 # Other
 
 class Contact(object):
-    def __init__(self, *args):
-        self.first_name = first_name
-        self.middle_name = middle_name
-        self.last_name = last_name
-        self.nick_name = nick_name
-        self.birthday = birthday
-        self.street_address = street_address
-        self.state = state
-        self.country = country
-        self.city = city
-        self.zipcode = zipcode
-        self.relationship_id = relationship_id
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
+    def __repr__(self):
+        return "%s %s" % (self.first_name, self.last_name)
 
 class Email(object):
-    pass
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
+    def __repr__(self):
+        return "%s, %s" % (self.email, self.group)
 
 class Type(object):
-    pass
+    def __repr__(self):
+        return "%s" % self.name
 
 class Relationship(object):
     def __init__(self, group):
@@ -79,8 +79,8 @@ class Relationship(object):
         return "%s" % self.group
 
 
-mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="people"),
-                                            'emails':relation(Email, secondary=contact_email_xref_table, backref="person")})
-mapper(Email, emails_table, properties={'groups':relation(Type, backref="people")})
+mapper(Contact, contacts_table, properties={'relationship': relation(Relationship, backref="people"),
+                                            'emails': relation(Email, secondary=contact_email_xref_table, backref="person")})
+mapper(Email, emails_table, properties={'group': relation(Type, backref="emails")})
 mapper(Relationship, relationships_table)
 mapper(Type, types_table)
