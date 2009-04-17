@@ -4,5 +4,5 @@
 </%def>
 
 % for contact in c.contacts:
-    ${contact}<br />
+    ${h.link_to(contact, h.url_for(action="contact_show", id=contact.id))}<br />
 % endfor

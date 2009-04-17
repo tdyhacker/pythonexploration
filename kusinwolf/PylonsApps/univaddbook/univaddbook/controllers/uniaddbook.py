@@ -74,25 +74,41 @@ class UniaddbookController(BaseController):
         c.relationships = {}
         for group in meta.Session.query(Relationship).all():
             c.relationships[group.id] = group
+        c.relationships = c.relationships.items()
+        c.relationships.sort()
         return render('/contact_add.mako')
 
     def contact_insert(self):
         meta.Session.save(
-            Contact(first_name = request.params['fname'],
-                    middle_name = request.params['mname'],
-                    last_name = request.params['lname'],
-                    nick_name = request.params['nname'],
+            Contact(first_name = str(request.params['fname']),
+                    middle_name = str(request.params['mname']),
+                    last_name = str(request.params['lname']),
+                    nick_name = str(request.params['nname']),
                     birthday = datetime(year=int(request.params['year']), month=int(request.params['month']), day=int(request.params['day'])),
-                    street_address = request.params['street'],
-                    state = request.params['state'],
-                    country = request.params['country'],
-                    city = request.params['city'],
+                    street_address = str(request.params['street']),
+                    state = str(request.params['state']),
+                    country = str(request.params['country']),
+                    city = str(request.params['city']),
                     zipcode = int(request.params['zipcode']),
-                    relationship_id = int(request.params['fname']),)
+                    relationship_id = int(request.params['relationship']),)
         )
         meta.Session.commit()
         return request.params.items()
     
     def contact_delete(self):
-        return request.params.items()
+        return request.params.items(), request.POST.items(), request.GET.items()
     
+    def contact_show(self, id):
+        id = int(id)
+        c.contact = meta.Session.query(Contact).filter_by(id=id).one()
+        emails_list = c.contact.emails
+        c.emails = {}
+        
+        for email in emails_list:
+            if not c.emails.has_key(email.group):
+                c.emails[email.group] = []
+            c.emails[email.group].append(email.email)
+        
+        return render('/contact_show.mako')
+    
+    # 2,47,(11, 12)
