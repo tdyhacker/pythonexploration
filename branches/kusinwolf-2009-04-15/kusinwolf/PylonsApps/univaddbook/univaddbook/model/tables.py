@@ -15,7 +15,7 @@ contacts_table = Table("contacts", meta.metadata,
     Column("nick_name", Text),
     Column("birthday", Date),
     Column("street_address", Text),
-    Column("state", String(2)),
+    Column("state", Integer, ForeignKey("states.id")),
     Column("country", Text),
     Column("city", Text),
     Column("zipcode", Integer),
@@ -51,6 +51,12 @@ relationships_table = Table("relationships", meta.metadata,
 # Co-workers
 # Other
 
+states_table = Table("states", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("state", Text),
+    Column("short", String(2)),
+    )
+
 class Contact(object):
     def __init__(self, **kws):
         for word in kws:
@@ -78,9 +84,13 @@ class Relationship(object):
     def __repr__(self):
         return "%s" % self.group
 
+class State(object):
+    pass
 
-mapper(Contact, contacts_table, properties={'relationship': relation(Relationship, backref="people"),
-                                            'emails': relation(Email, secondary=contact_email_xref_table, backref="person")})
-mapper(Email, emails_table, properties={'group': relation(Type, backref="emails")})
+mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="contacts"),
+                                            'emails':relation(Email, secondary=contact_email_xref_table, backref="contact"),
+                                            'state':relation(State, backref="contacts")})
+mapper(Email, emails_table, properties={'group':relation(Type, backref="emails")})
 mapper(Relationship, relationships_table)
 mapper(Type, types_table)
+mapper(State, states_table)

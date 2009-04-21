@@ -11,58 +11,6 @@ from univaddbook.model.tables import Contact, Email, Type, Relationship
 log = logging.getLogger(__name__)
 
 class UniaddbookController(BaseController):
-    states = {
-        "AL": "ALABAMA",
-        "AK": "ALASKA",
-        "AZ": "ARIZONA",
-        "AR": "ARKANSAS",
-        "CA": "CALIFORNIA",
-        "CO": "COLORADO",
-        "CT": "CONNECTICUT",
-        "DE": "DELAWARE",
-        "FL": "FLORIDA",
-        "GA": "GEORGIA",
-        "HI": "HAWAII",
-        "ID": "IDAHO",
-        "IL": "ILLINOIS",
-        "IN": "INDIANA",
-        "IA": "IOWA",
-        "KS": "KANSAS",
-        "KY": "KENTUCKY",
-        "LA": "LOUISIANA",
-        "ME": "MAINE",
-        "MD": "MARYLAND",
-        "MA": "MASSACHUSETTS",
-        "MI": "MICHIGAN",
-        "MN": "MINNESOTA",
-        "MS": "MISSISSIPPI",
-        "MO": "MISSOURI",
-        "MT": "MONTANA",
-        "NE": "NEBRASKA",
-        "NV": "NEVADA",
-        "NH": "NEWHAMPSHIRE",
-        "NJ": "NEWJERSEY",
-        "NM": "NEWMEXICO",
-        "NY": "NEWYORK",
-        "NC": "NORTHCAROLINA",
-        "ND": "NORTHDAKOTA",
-        "OH": "OHIO",
-        "OK": "OKLAHOMA",
-        "OR": "OREGON",
-        "PA": "PENNSYLVANIA",
-        "RI": "RHODEISLAND",
-        "SC": "SOUTHCAROLINA",
-        "SD": "SOUTHDAKOTA",
-        "TN": "TENNESSEE",
-        "TX": "TEXAS",
-        "UT": "UTAH",
-        "VT": "VERMONT",
-        "VA": "VIRGINIA",
-        "WA": "WASHINGTON",
-        "WV": "WESTVIRGINIA",
-        "WI": "WISCONSIN",
-        "WY": "WYOMING",
-    }
     
     def index(self):
         c.contacts = meta.Session.query(Contact).all()
@@ -96,7 +44,9 @@ class UniaddbookController(BaseController):
         return request.params.items()
     
     def contact_delete(self):
-        return request.params.items(), request.POST.items(), request.GET.items()
+        meta.Session.delete(meta.Session.query(Contact).filter_by(id=int(request.params['id'])).one())
+        meta.Session.commit()
+        return redirect()
     
     def contact_show(self, id):
         id = int(id)
@@ -110,5 +60,3 @@ class UniaddbookController(BaseController):
             c.emails[email.group].append(email.email)
         
         return render('/contact_show.mako')
-    
-    # 2,47,(11, 12)
