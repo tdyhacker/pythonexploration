@@ -15,10 +15,10 @@ contacts_table = Table("contacts", meta.metadata,
     Column("nick_name", Text),
     Column("birthday", Date),
     Column("street_address", Text),
-    Column("State", Integer, ForeignKey("states.id")),
     Column("country", Text),
     Column("city", Text),
     Column("zipcode", Integer),
+    Column("state_id", Integer, ForeignKey("states.id")),
     Column("relationship_id", Integer, ForeignKey("relationships.id")),
     )
 
@@ -53,7 +53,7 @@ relationships_table = Table("relationships", meta.metadata,
 
 states_table = Table("states", meta.metadata,
     Column("id", Integer, primary_key=True),
-    Column("state", Text),
+    Column("name", Text),
     Column("short", String(2)),
     )
 
@@ -63,7 +63,7 @@ class Contact(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return "%s %s" % (self.last_name, self.first_name)
 
 class Email(object):
     def __init__(self, **kws):
@@ -85,7 +85,8 @@ class Relationship(object):
         return "%s" % self.group
 
 class State(object):
-    pass
+    def __repr__(self):
+        return "%s" % self.state
 
 mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="contacts"),
                                             'emails':relation(Email, secondary=contact_email_xref_table, backref="contact"),
