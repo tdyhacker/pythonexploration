@@ -13,7 +13,11 @@
                 First Name:
             </td>
             <td>
-                <input type="text", name='fname', id='lname', value='John/Jane'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='fname', value=session['fname'])}
+                % else:
+                    <input type="text", name='fname', id='lname', value='John/Jane'>
+                % endif
             </td>
         </tr>
         <tr>
@@ -21,7 +25,11 @@
                 Last Name:
             </td>
             <td>
-                <input type="text", name='lname', id='lname', value='Doe'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='lname', value=session['lname'])}
+                % else:
+                    <input type="text", name='lname', id='lname', value='Doe'>
+                % endif
             </td>
         </tr>
         <tr>
@@ -29,7 +37,11 @@
                 Middle Name:
             </td>
             <td>
-                <input type="text", name='mname', id='mname', value='M.'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='mname', value=session['mname'])}
+                % else:
+                    <input type="text", name='mname', id='mname', value='M.'>
+                % endif
             </td>
         </tr>
         <tr>
@@ -37,7 +49,11 @@
                 Nick Name:
             </td>
             <td>
-                <input type="text", name='nname', id='nname', value='Bobby'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='nname', value=session['nname'])}
+                % else:
+                    <input type="text", name='nname', id='nname', value='Bobby'>
+                % endif
             </td>
         </tr>
         <tr>
@@ -45,9 +61,15 @@
                 Birthday:
             </td>
             <td>
-                Month: ${h.select("month", 1, range(1,13))}
-                Day: ${h.select("day", 1, range(1,32))}
-                Year: ${h.select("year", 2009, range(2015,1900, -1))}
+                % if session.has_key('edit') and session['edit']:
+                    Month: ${h.select("month", session['month'], range(1,13))}
+                    Day: ${h.select("day", session['day'], range(1,32))}
+                    Year: ${h.select("year", session['year'], range(2015,1900, -1))}
+                % else:
+                    Month: ${h.select("month", 1, range(1,13))}
+                    Day: ${h.select("day", 1, range(1,32))}
+                    Year: ${h.select("year", 2009, range(2015,1900, -1))}
+                % endif
             </td>
         </tr>
         <tr>
@@ -55,7 +77,11 @@
                 Relationship:
             </td>
             <td>
-                ${h.select("relationship", None, c.relationships)}
+                % if session.has_key('edit') and session['edit']:
+                    ${h.select('relationship', session['relationship'], c.relationships)}
+                % else:
+                    ${h.select("relationship", None, c.relationships)}
+                % endif
             </td>
         </tr>
         <tr>
@@ -71,7 +97,11 @@
                 State:
             </td>
             <td>
-                ${h.select("State", None, c.states)}
+                % if session.has_key('edit') and session['edit']:
+                    ${h.select('State', session['State'], c.states)}
+                % else:
+                    ${h.select("State", None, c.states)}
+                % endif
             </td>
         </tr>
         <tr>
@@ -79,7 +109,11 @@
                 City:
             </td>
             <td>
-                <input type="text" name='city', id='city', value='Paris'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='city', value=session['city'])}
+                % else:
+                    <input type="text" name='city', id='city', value='Paris'>
+                % endif
             </td>
         </tr>
         <tr>
@@ -87,7 +121,11 @@
                 Zipcode:
             </td>
             <td>
-                <input type="text" name='zipcode', id='zipcode', value='74387'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='zipcode', value=session['zipcode'])}
+                % else:
+                    <input type="text" name='zipcode', id='zipcode', value='74387'>
+                % endif
             </td>
         </tr>
         <tr>
@@ -95,7 +133,11 @@
                 Street:
             </td>
             <td>
-                <input type="text" name='street', id='street', value='7653 Woodmill Rd.'>
+                % if session.has_key('edit') and session['edit']:
+                    ${h.text(name='street', value=session['street'])}
+                % else:
+                    <input type="text" name='street', id='street', value='7653 Woodmill Rd.'>
+                % endif
             </td>
         </tr>
         <tr>

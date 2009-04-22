@@ -85,8 +85,12 @@ class Relationship(object):
         return "%s" % self.group
 
 class State(object):
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
     def __repr__(self):
-        return "%s" % self.state
+        return "%s" % self.name
 
 mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="contacts"),
                                             'emails':relation(Email, secondary=contact_email_xref_table, backref="contact"),
