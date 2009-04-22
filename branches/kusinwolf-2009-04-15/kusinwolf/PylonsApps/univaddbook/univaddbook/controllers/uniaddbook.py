@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import csv
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
@@ -90,7 +91,41 @@ class UniaddbookController(BaseController):
         return render('/contact_show.mako')
     
     def contact_import(self):
-        return "Is a be importin'! :D"
+        return render('/contact_import.mako')
+    
+    def csv_import(self):
+        myfile = request.params['contacts']
+        contacts = csv.reader(myfile.value, delimiter="|")
+        
+        # Column names
+        columns = contacts.next()
+        
+        meta.Session.begin()
+        
+        # row in the file
+        for contact in contacts:
+            # position in the row
+            row = {}
+            for pos in range(len(contact)):
+                row[columns[pos].lower()] = contact[pos]
+            c = Contact(
+                    first_name = row['firstname'],
+                    middle_name = "",
+                    last_name = row['lastname'],
+                    nick_name = "",
+                    birthday = datetime(year=row['birthday'], month=row['birthday'], day=row['birthday']),
+                    street_address = row['street'],
+                    country = row['country'],
+                    city = row['city'],
+                    zipcode = row['zipcode'],
+                    state_id = row['state'],
+                    relationship_id = row['relationship'])
+            e = Email(email=row['email'], type_id=row['group'])
+            c.email.append(e)
+            meta.Session.add_all(c, e)
+        
+        meta.Session.commit()
+        return 
     
     def contact_export(self):
         return "Is a be exportin'! :D"
