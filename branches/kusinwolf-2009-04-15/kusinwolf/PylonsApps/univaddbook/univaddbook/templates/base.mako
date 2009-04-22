@@ -1,7 +1,7 @@
 <html>
   <head>
     ${self.head_tags()} <!-- Build out header either by default or overwrite it -->
-    <link rel="stylesheet" type="text/css" href="../../css/base.css">
+    <link rel="stylesheet" type="text/css" href="/css/base.css">
   </head>
   <body>
     ${next.body()}
