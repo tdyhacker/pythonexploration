@@ -6,7 +6,7 @@
 <br />
 <br />
 <br />
-<form method="POST" action="contact_insert">
+<form method="POST" controller="uniaddbook", action="contact_insert">
     <table>
         <tr>
             <td>
@@ -42,6 +42,16 @@
         </tr>
         <tr>
             <td>
+                Birthday:
+            </td>
+            <td>
+                Month: ${h.select("month", 1, range(1,13))}
+                Day: ${h.select("day", 1, range(1,32))}
+                Year: ${h.select("year", 2009, range(2015,1900, -1))}
+            </td>
+        </tr>
+        <tr>
+            <td>
                 Relationship:
             </td>
             <td>
@@ -50,20 +60,10 @@
         </tr>
         <tr>
             <td>
-                Birthday:
+                Country:
             </td>
             <td>
-                ${h.select("month", 1, range(1,13))}
-                ${h.select("day", 1, range(1,32))}
-                ${h.select("year", 2009, range(2015,1900, -1))}
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Street:
-            </td>
-            <td>
-                <input type="text" name='street', id='street', value='7653 Woodmill Rd.'>
+                ${h.select("country", None, ["USA",])}
             </td>
         </tr>
         <tr>
@@ -71,15 +71,7 @@
                 State:
             </td>
             <td>
-                ${h.select("state", None, c.states)}
-            </td>
-        </tr>
-                <tr>
-            <td>
-                Country:
-            </td>
-            <td>
-                ${h.select("country", None, ["USA",])}
+                ${h.select("State", None, c.states)}
             </td>
         </tr>
         <tr>
@@ -99,8 +91,16 @@
             </td>
         </tr>
         <tr>
+            <td>
+                Street:
+            </td>
+            <td>
+                <input type="text" name='street', id='street', value='7653 Woodmill Rd.'>
+            </td>
+        </tr>
+        <tr>
             <td colspan=2>
-                <input type='submit'>
+                <input type='submit', value="Save">
             </td>
         </tr>
     </table>

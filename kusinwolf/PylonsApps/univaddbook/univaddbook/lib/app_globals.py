@@ -13,4 +13,4 @@ class Globals(object):
         'app_globals' variable
 
         """
-        self.sitemap = {'Homepage': 'index', 'Contact Add': 'contact_add'}
+        self.sitemap = [('Homepage', 'index'), ('Add Contact', 'contact_add'), ('Import Contacts', 'contact_import'), ('Export Contacts', 'contact_export')]
