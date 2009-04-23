@@ -216,5 +216,12 @@ class UniaddbookController(BaseController):
 
     def index(self):
         '''mako controller'''
-        c.contacts = meta.Session.query(Contact).order_by("last_name").all()
+        # Break everything up into 3 eye appealing equal columns
+        size = len(meta.Session.query(Contact).all())
+        c.limit = (size / 3)
+        c.microoffset = (size % 3)
+        
+        c.contacts1 = meta.Session.query(Contact).order_by("last_name").limit(c.limit + c.microoffset).all()
+        c.contacts2 = meta.Session.query(Contact).order_by("last_name").limit(c.limit + c.microoffset).offset(c.limit + c.microoffset).all()
+        c.contacts3 = meta.Session.query(Contact).order_by("last_name").limit(c.limit).offset(c.limit * 2 + c.microoffset * 2).all()
         return render('/index.mako')
