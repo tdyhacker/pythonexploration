@@ -180,7 +180,7 @@ class UniaddbookController(BaseController):
         for email in c.contact.emails:
             if not c.emails.has_key(email.group):
                 c.emails[email.group] = []
-            c.emails[email.group].append(email.email)
+            c.emails[email.group].append(email)
         
         c.groups = {}
         for group in meta.Session.query(Type).all():
@@ -213,7 +213,21 @@ class UniaddbookController(BaseController):
         session['id'] = contact.id
         session.save()
         return redirect_to(controller='uniaddbook', action='contact_show', method="post")
+    
+    def email_edit(self):
+        '''functional controller'''
+        meta.Session.begin()
+        email = meta.Session.query(Email).filter_by(id=int(request.params['email_id'])).one()
+        email.email = str(request.params['email_edit'])
+        meta.Session.update(email)
+        meta.Session.commit()
+        session['id'] = int(request.params['contact_id'])
+        session.save()
+        return redirect_to(controller='uniaddbook', action='contact_show', method="post")
 
+    def email_delete(self):
+        '''functional controller'''
+        
     def index(self):
         '''mako controller'''
         # Break everything up into 3 eye appealing equal columns
