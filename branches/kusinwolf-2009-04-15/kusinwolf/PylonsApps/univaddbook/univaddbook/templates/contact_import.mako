@@ -1,6 +1,6 @@
 <%inherit file="base.mako"/>
 <%def name="head_tags()">
-    <title>Index</title>
+    <title>Import Contacts</title>
 </%def>
 
 ${h.form(h.url_for(action='csv_import', method='POST'), multipart=True)}

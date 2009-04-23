@@ -63,7 +63,16 @@ class Contact(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "%s %s" % (self.last_name, self.first_name)
+        return "%s, %s" % (self.last_name, self.first_name)
+    
+    def export(self):
+        '''returns a list of all attributes'''
+        
+        # output email name
+        out_emails = []
+        for email in self.emails:
+            out_emails.append(str(email.email))
+        return [str(self.first_name), self.last_name, str(self.state.name), str(self.city), int(self.zipcode), self.birthday.strftime("%m/%d/%Y"), str(self.relationship.group), out_emails]
 
 class Email(object):
     def __init__(self, **kws):

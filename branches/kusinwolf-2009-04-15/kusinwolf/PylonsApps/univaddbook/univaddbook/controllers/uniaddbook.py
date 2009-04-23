@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 import csv
+import os
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
@@ -14,57 +15,6 @@ log = logging.getLogger(__name__)
 class UniaddbookController(BaseController):
     '''All mako and functional controllers are expressed in their docs. Each controller is specific to their function'''
     
-    def csv_import(self):
-        '''functional controller'''
-        myfile = request.params['contacts']
-        contacts = csv.reader(myfile.value.split("\n"), delimiter="|")
-        
-        # Column names
-        columns = contacts.next()
-        
-        meta.Session.begin()
-        
-        # row in the file
-        for contact in contacts:
-            # position in the row
-            row = {}
-            for pos in range(len(contact)):
-                row[columns[pos].lower()] = contact[pos]
-            
-            if row: # has something
-                state = meta.Session.query(State).filter_by(name=row['state']).all()
-                
-                # If the state is not apart of the database
-                if not state:
-                    meta.Session.begin(subtransactions=True)
-                    meta.Session.add(State(name=row['state'], short=""))
-                    meta.Session.commit()
-                
-                state_id = meta.Session.query(State).filter_by(name=row['state']).one().id
-                
-                c = Contact(
-                        first_name = row['firstname'],
-                        middle_name = "",
-                        last_name = row['lastname'],
-                        nick_name = "",
-                        birthday = datetime(year=int(row['birthday'][6:10]), month=int(row['birthday'][0:2]), day=int(row['birthday'][3:5])),
-                        street_address = row['street'],
-                        country = row['country'],
-                        city = row['city'],
-                        zipcode = row['zipcode'],
-                        state_id = state_id,
-                        relationship_id = int(row['relationship']))
-                e = Email(email=row['email'], type_id=int(row['group']))
-                c.emails.append(e)
-                meta.Session.add_all([c, e])
-        
-        meta.Session.commit()
-        return redirect_to(controller='uniaddbook', action='index')
-    
-    def csv_export(self):
-        '''functional controller'''
-        return "Now I'm really exporting!"
-
     def contact_add(self):
         '''mako controller'''
         
@@ -93,6 +43,20 @@ class UniaddbookController(BaseController):
         meta.Session.commit()
         return redirect_to(controller='uniaddbook', action='index')
     
+    def contact_display_boxes(self):
+        '''functional controller'''
+        # Break everything up into 3 eye appealing equal columns for the index and export select
+        size = len(meta.Session.query(Contact).all())
+        c.limit = (size / 3)
+        c.microoffset = 0
+        if size % 3 != 0:
+            c.microoffset = 1
+        
+        c.contacts1 = meta.Session.query(Contact).order_by("last_name").limit(c.limit + c.microoffset).all()
+        c.contacts2 = meta.Session.query(Contact).order_by("last_name").limit(c.limit + c.microoffset).offset(c.limit + c.microoffset).all()
+        c.contacts3 = meta.Session.query(Contact).order_by("last_name").limit(c.limit).offset(c.limit * 2 + c.microoffset * 2).all()
+
+    
     def contact_edit(self):
         '''mako controller'''
         c.contact = meta.Session.query(Contact).filter_by(id=request.params['id']).one()
@@ -119,7 +83,10 @@ class UniaddbookController(BaseController):
 
     def contact_export(self):
         '''mako controller'''
-        return "Is a be exportin'! :D"
+        
+        self.contact_display_boxes()
+        
+        return render('/contact_export.mako')
     
     def contact_import(self):
         '''mako controller'''
@@ -214,6 +181,76 @@ class UniaddbookController(BaseController):
         session.save()
         return redirect_to(controller='uniaddbook', action='contact_show', method="post")
     
+    def csv_import(self):
+        '''functional controller'''
+        myfile = request.params['contacts']
+        contacts = csv.reader(myfile.value.split("\n"), delimiter="|")
+        
+        # Column names
+        columns = contacts.next()
+        
+        meta.Session.begin()
+        
+        # row in the file
+        for contact in contacts:
+            # position in the row
+            row = {}
+            for pos in range(len(contact)):
+                row[columns[pos].lower()] = contact[pos]
+            
+            if row: # has something
+                state = meta.Session.query(State).filter_by(name=row['state']).all()
+                
+                # If the state is not apart of the database
+                if not state:
+                    meta.Session.begin(subtransactions=True)
+                    meta.Session.add(State(name=row['state'], short=""))
+                    meta.Session.commit()
+                
+                state_id = meta.Session.query(State).filter_by(name=row['state']).one().id
+                
+                c = Contact(
+                        first_name = row['firstname'],
+                        middle_name = "",
+                        last_name = row['lastname'],
+                        nick_name = "",
+                        birthday = datetime(year=int(row['birthday'][6:10]), month=int(row['birthday'][0:2]), day=int(row['birthday'][3:5])),
+                        street_address = row['street'],
+                        country = row['country'],
+                        city = row['city'],
+                        zipcode = row['zipcode'],
+                        state_id = state_id,
+                        relationship_id = int(row['relationship']))
+                e = Email(email=row['email'], type_id=int(row['group']))
+                c.emails.append(e)
+                meta.Session.add_all([c, e])
+        
+        meta.Session.commit()
+        return redirect_to(controller='uniaddbook', action='index')
+    
+    def csv_export(self):
+        '''functional controller'''
+        now = datetime.today()
+        c.filename = "/downloads/%s%s%s%s%s%s.csv" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
+        outfile = open("%s/univaddbook/public/%s" % (os.getcwd(), c.filename), "w")
+        writer = csv.writer(outfile)
+        
+        self.contact_display_boxes()
+        
+        ids = request.POST.getall('export')
+        # Columns first
+        out_contacts = [["FirstName", "LastName", "State", "City", "Zipcode", "Birthday", "Relationship", "Emails"],]
+        
+        for id in ids:
+            contact = meta.Session.query(Contact).filter_by(id=int(id)).one()
+            
+            out_contacts.append(contact.export())
+        
+        writer.writerows(out_contacts)
+        
+        outfile.close()
+        return render('/contact_export_download.mako')
+    
     def email_edit(self):
         '''functional controller'''
         meta.Session.begin()
@@ -230,15 +267,7 @@ class UniaddbookController(BaseController):
         
     def index(self):
         '''mako controller'''
-        # Break everything up into 3 eye appealing equal columns
-        size = len(meta.Session.query(Contact).all())
-        c.limit = (size / 3)
-        c.microoffset = 0
-        if size % 3 != 0:
-            c.microoffset = 1
         
-        c.contacts1 = meta.Session.query(Contact).order_by("last_name").limit(c.limit + c.microoffset).all()
-        c.contacts2 = meta.Session.query(Contact).order_by("last_name").limit(c.limit + c.microoffset).offset(c.limit + c.microoffset).all()
-        c.contacts3 = meta.Session.query(Contact).order_by("last_name").limit(c.limit).offset(c.limit * 2 + c.microoffset * 2).all()
-
+        self.contact_display_boxes()
+        
         return render('/index.mako')

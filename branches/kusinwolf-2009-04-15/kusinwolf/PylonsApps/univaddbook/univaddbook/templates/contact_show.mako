@@ -1,5 +1,6 @@
 <%inherit file="base.mako"/>
 <%def name="head_tags()">
+    <title>${c.contact}</title>
 </%def>
 
 <div class="head">

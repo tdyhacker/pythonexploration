@@ -23,6 +23,5 @@
   <BR />
   % for page in g.sitemap:
     ${h.link_to(page[0], h.url_for(action=page[1]))} |
-    <img src="http://www.pylonshq.com/" />
   % endfor
 </%def>
