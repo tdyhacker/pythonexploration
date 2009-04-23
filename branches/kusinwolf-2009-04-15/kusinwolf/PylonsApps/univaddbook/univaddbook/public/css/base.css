@@ -1,5 +1,15 @@
 body {
-    background-color: #222266;
+    background-color: #8A41E1;
+    color: #000000;
+}
+
+img{
+    
+}
+
+.head {
+    text-align: center;
+    color: #41D4E1;
 }
 
 .emails {

@@ -1,7 +1,12 @@
 <%inherit file="base.mako"/>
 <%def name="head_tags()">
-    <title>Index</title>
 </%def>
+
+<div class="head">
+
+    <h1> Contact Info </h1>
+    
+</div>
 
 <table>
     <tr>
