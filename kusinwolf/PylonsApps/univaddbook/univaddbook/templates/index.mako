@@ -3,10 +3,11 @@
     <title>Index</title>
 </%def>
 
-<table>
+<center>
+<table border=1>
 % for position in range(c.limit-1):
     <tr>
-        <td>
+        <td valign=middle>
             ${h.form("contact_show", controller="uniaddbook", method="post")}
                 ${h.hidden(name='id', value=c.contacts1[position].id, checked='checked')}
                 ${h.submit("show", c.contacts1[position])}
@@ -19,6 +20,9 @@
             ${h.end_form()}
         </td>
         <td>
+            <div class="spacer"></div>
+        </td>
+        <td>
             ${h.form("contact_show", controller="uniaddbook", method="post")}
                 ${h.hidden(name='id', value=c.contacts2[position].id, checked='checked')}
                 ${h.submit("show", c.contacts2[position])}
@@ -29,6 +33,9 @@
                 ${h.hidden(name='id', value=c.contacts2[position].id, checked='checked')}
                 ${h.submit("Delete", "Delete", confirm="Are you sure?")}<br />
             ${h.end_form()}
+        </td>
+        <td>
+            <div class="spacer"></div>
         </td>
         <td>
             ${h.form("contact_show", controller="uniaddbook", method="post")}
@@ -75,3 +82,4 @@
     </tr>
 % endif
 </table>
+</center>
