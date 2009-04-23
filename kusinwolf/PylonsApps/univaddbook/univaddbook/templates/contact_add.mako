@@ -3,6 +3,10 @@
     <title>Add Contact</title>
 </%def>
 
+<div class="head">
+    <h1>Adding Contact Info</h1>
+</div>
+
 <br />
 <br />
 <br />
