@@ -19,7 +19,7 @@
 </%def>
 
 <%def name="footer()">
-  UnivAdressBook
+  Universal Adress Book
   <BR />
   % for page in g.sitemap:
     ${h.link_to(page[0], h.url_for(action=page[1]))} |

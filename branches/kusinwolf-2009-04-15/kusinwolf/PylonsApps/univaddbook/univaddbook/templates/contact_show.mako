@@ -4,9 +4,7 @@
 </%def>
 
 <div class="head">
-
     <h1> Contact Info </h1>
-    
 </div>
 
 <table>

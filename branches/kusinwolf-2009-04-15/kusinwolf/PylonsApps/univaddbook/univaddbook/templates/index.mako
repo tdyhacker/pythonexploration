@@ -3,6 +3,10 @@
     <title>Index</title>
 </%def>
 
+<div class="head">
+    <h1>Welcome! ^_^</h1>
+</div>
+
 <center>
 <table border=1>
 % for position in range(c.limit-1):
@@ -29,11 +33,17 @@
             ${h.end_form()}
         </td>
         <td>
-            ${h.form("contact_delete", controller="uniaddbook", method="post")}
-                ${h.hidden(name='id', value=c.contacts2[position].id, checked='checked')}
-                ${h.submit("Delete", "Delete", confirm="Are you sure?")}<br />
-            ${h.end_form()}
-        </td>
+           ${h.form("contact_show", controller="uniaddbook", method="post")}
+               ${h.hidden(name='id', value=c.contacts2[position].id, checked='checked')}
+               ${h.submit("show", c.contacts2[position])}
+           ${h.end_form()}
+       </td>
+       <td>
+           ${h.form("contact_delete", controller="uniaddbook", method="post")}
+               ${h.hidden(name='id', value=c.contacts2[position].id, checked='checked')}
+               ${h.submit("Delete", "Delete", confirm="Are you sure?")}<br />
+           ${h.end_form()}
+       </td>
         <td>
             <div class="spacer"></div>
         </td>
@@ -51,6 +61,7 @@
         </td>
     </tr>
 % endfor
+
 % if c.microoffset != 0:
     <tr>
         <td>
