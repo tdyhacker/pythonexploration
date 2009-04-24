@@ -2,7 +2,7 @@
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from ogameinfo.model import meta
+from ogameinfo.model import meta, tables
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
