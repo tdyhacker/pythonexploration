@@ -179,7 +179,7 @@ class Resource(object):
     def __repr__(self):
         return "Resource Object"
 
-class Espionage_Building_xref(object):
+class Building_level(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -187,7 +187,7 @@ class Espionage_Building_xref(object):
     def __repr__(self):
         return "Espionage Building xref Object"
 
-class Espionage_Researches_xref(object):
+class Research_level(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -195,7 +195,7 @@ class Espionage_Researches_xref(object):
     def __repr__(self):
         return "Espionage Researches xref Object"
 
-class Espionage_Resources_xref(object):
+class Resource_amount(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -203,7 +203,7 @@ class Espionage_Resources_xref(object):
     def __repr__(self):
         return "Espionage Resources xref Object"
 
-class Espionage_Defences_xref(object):
+class Defence_amount(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -211,7 +211,7 @@ class Espionage_Defences_xref(object):
     def __repr__(self):
         return "Espionage Defences xref Object"
 
-class Espionage_Planets_xref(object):
+class Planet_timestamp(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -219,7 +219,7 @@ class Espionage_Planets_xref(object):
     def __repr__(self):
         return "Espionage Planets xref Object"
 
-class Espionage_Ships_xref(object):
+class Ship_amount(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -294,11 +294,12 @@ mapper(Player, players_table, properties={'alliance':relation(Alliance, backref=
                                           'espionaged':relation(Espionage, secondary=players_espionages_xref_table, backref="espionagers")
                                           })
 
-mapper(Espionage, espionages_table, properties={'resources':relation(Resource, secondary=e_rs_xref_table),
-                                                'fleet':relation(Ship, secondary=e_s_xref_table),
-                                                'defences':relation(Defence, secondary=e_d_xref_table),
-                                                'buildings':relation(Building, secondary=e_b_xref_table),
-                                                'research':relation(Research, secondary=e_rh_xref_table),
+mapper(Espionage, espionages_table, properties={'resources':relation(Resource_amount),
+                                                'fleet':relation(Ship_amount),
+                                                'defences':relation(Defence_amount),
+                                                'buildings':relation(Building_level),
+                                                'research':relation(Research_level),
+                                                'updated':relation(Planet_timestamp),
                                                 'planet':relation(Planet, secondary=e_p_xref_table, backref="espionage_reports"),
                                                 })
 
@@ -312,9 +313,9 @@ mapper(User, users_table)
 mapper(Ship, ships_table)
 mapper(Alliance, alliances_table)
 
-mapper(Espionage_Building_xref, e_b_xref_table)
-mapper(Espionage_Researches_xref, e_rh_xref_table)
-mapper(Espionage_Resources_xref, e_rs_xref_table)
-mapper(Espionage_Defences_xref, e_d_xref_table)
-mapper(Espionage_Ships_xref, e_s_xref_table)
-mapper(Espionage_Planets_xref, e_p_xref_table)
+mapper(Building_level, e_b_xref_table, properties={'building':relation(Building)})
+mapper(Research_level, e_rh_xref_table, properties={'research':relation(Research)})
+mapper(Resource_amount, e_rs_xref_table, properties={'resource':relation(Resource)})
+mapper(Defence_amount, e_d_xref_table, properties={'defence':relation(Defence)})
+mapper(Ship_level, e_s_xref_table, properties={'ship':relation(Ship)})
+mapper(Planet_timestamp, e_p_xref_table)

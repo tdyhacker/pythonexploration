@@ -61,3 +61,6 @@ INSERT INTO researches (name) VALUES ('Expedition Technology');
 INSERT INTO researches (name) VALUES ('Graviton Technology');
 
 INSERT INTO alliances (name, rank, members, points) VALUES ('No Alliance', 0, 0, 0);
+
+INSERT INTO planets (name, galaxy, system, orbit, moon) VALUES ('Homeworld', 2, 38, 11, 'f');
+INSERT INTO players (name, rank, alliance_id, points) VALUES ('kusinwolf', 1690, 1, 2150);
