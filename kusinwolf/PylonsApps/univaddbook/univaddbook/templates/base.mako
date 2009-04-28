@@ -21,7 +21,9 @@
 <%def name="footer()">
   Universal Adress Book
   <BR />
+  <div class="test">
   % for page in g.sitemap:
     ${h.link_to(page[0], h.url_for(action=page[1]))} |
   % endfor
+  </div>
 </%def>

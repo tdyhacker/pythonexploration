@@ -10,6 +10,7 @@
 <br />
 <br />
 <br />
+<center>
 <form method="POST" controller="uniaddbook", action="contact_insert">
     <table>
         <tr>
@@ -151,6 +152,7 @@
         </tr>
     </table>
 </form>
+</center>
 <br />
 <br />
 <br />
