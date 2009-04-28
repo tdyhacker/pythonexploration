@@ -20,8 +20,9 @@ class UniaddbookController(BaseController):
         
         self.contact_selection_boxes()
         
-        session['id'] = meta.Session.query(Contact).order_by('id DESC').all()[0].id
-        session.save()
+        if session.has_key("id"):
+            session['id'] = meta.Session.query(Contact).order_by('id DESC').all()[0].id
+            session.save()
         return render('/contact_add.mako')
 
     def contact_addemail(self):

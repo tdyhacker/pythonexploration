@@ -78,6 +78,9 @@
         </td>
     % if c.limit % 3 == 2:
         <td>
+            <div class="spacer"></div>
+        </td>
+        <td>
             ${h.form("contact_show", controller="uniaddbook", method="post")}
                 ${h.hidden(name='id', value=c.contacts2[c.limit].id, checked='checked')}
                 ${h.submit("show", c.contacts2[c.limit])}
