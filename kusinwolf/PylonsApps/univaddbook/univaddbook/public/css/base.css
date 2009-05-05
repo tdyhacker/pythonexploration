@@ -1,0 +1,48 @@
+a:link{
+    color:#000000;
+    
+}
+
+a:visited{
+    color: green;
+}
+
+a:hover{
+    color: #C16BEF;
+    background-color: #FFFFFF;
+    font-size: 20;
+    
+}
+
+a:active{
+    color: #F8F81F;
+}
+
+body {
+    #background-color: #8A41E1;
+    #background-color: #222266;
+    background-color: #690D0D;
+    color: #000000;
+    #color: #FFFFFF;
+    text-align: center;
+}
+
+img{
+    
+}
+
+.head {
+    text-align: center;
+    color: #41D4E1;
+}
+
+.contact_name {
+    margin-top: 0px;
+    margin-left: 22px;
+    position: static;
+    
+}
+
+.spacer {
+    padding-left: 40px;
+}

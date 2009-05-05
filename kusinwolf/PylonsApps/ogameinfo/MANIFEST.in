@@ -1,0 +1,3 @@
+include ogameinfo/config/deployment.ini_tmpl
+recursive-include ogameinfo/public *
+recursive-include ogameinfo/templates *

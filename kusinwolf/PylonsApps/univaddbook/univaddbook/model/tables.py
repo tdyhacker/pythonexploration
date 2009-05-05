@@ -15,10 +15,10 @@ contacts_table = Table("contacts", meta.metadata,
     Column("nick_name", Text),
     Column("birthday", Date),
     Column("street_address", Text),
-    Column("state", String(2)),
     Column("country", Text),
     Column("city", Text),
     Column("zipcode", Integer),
+    Column("state_id", Integer, ForeignKey("states.id")),
     Column("relationship_id", Integer, ForeignKey("relationships.id")),
     )
 
@@ -51,18 +51,60 @@ relationships_table = Table("relationships", meta.metadata,
 # Co-workers
 # Other
 
+states_table = Table("states", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("name", Text),
+    Column("short", String(2)),
+    )
+
 class Contact(object):
-    pass
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
+    def __repr__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+    
+    def export(self):
+        '''returns a list of all attributes'''
+        
+        # output email name
+        out_emails = []
+        for email in self.emails:
+            out_emails.append(str(email.email))
+        return [str(self.first_name), self.last_name, str(self.state.name), str(self.city), int(self.zipcode), self.birthday.strftime("%m/%d/%Y"), str(self.relationship.group), out_emails]
+
 class Email(object):
-    pass
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
+    def __repr__(self):
+        return "%s, %s" % (self.email, self.group)
+
 class Type(object):
-    pass
+    def __repr__(self):
+        return "%s" % self.name
+
 class Relationship(object):
-    pass
+    def __init__(self, group):
+        self.group = group
+    
+    def __repr__(self):
+        return "%s" % self.group
 
+class State(object):
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
+    def __repr__(self):
+        return "%s" % self.name
 
-mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="people"),
-                                            'emails':relation(Email, secondary=contact_email_xref_table, backref="person")})
-mapper(Email, emails_table, properties={'groups':relation(Type, backref="people")})
+mapper(Contact, contacts_table, properties={'relationship':relation(Relationship, backref="contacts"),
+                                            'emails':relation(Email, secondary=contact_email_xref_table, backref="contact"),
+                                            'state':relation(State, backref="contacts")})
+mapper(Email, emails_table, properties={'group':relation(Type, backref="emails")})
 mapper(Relationship, relationships_table)
 mapper(Type, types_table)
+mapper(State, states_table)
