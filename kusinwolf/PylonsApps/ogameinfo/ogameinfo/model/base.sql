@@ -60,6 +60,11 @@ INSERT INTO researches (name) VALUES ('Intergalactic Research Network');
 INSERT INTO researches (name) VALUES ('Expedition Technology');
 INSERT INTO researches (name) VALUES ('Graviton Technology');
 
+INSERT INTO resources (name) VALUES ('Metal');
+INSERT INTO resources (name) VALUES ('Crystal');
+INSERT INTO resources (name) VALUES ('Deutrerium');
+INSERT INTO resources (name) VALUES ('Energy');
+
 INSERT INTO alliances (name, rank, members, points) VALUES ('No Alliance', 0, 0, 0);
 
 INSERT INTO planets (name, galaxy, system, orbit, moon) VALUES ('Homeworld', 2, 38, 11, 'f');
