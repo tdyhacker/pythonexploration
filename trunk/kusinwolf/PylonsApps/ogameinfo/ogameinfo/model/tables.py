@@ -37,13 +37,13 @@ defences_table = Table("defences", meta.metadata,
 espionages_table = Table("espionages", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("counter_espionage", Integer),
+    Column("created", TIMESTAMP()),
     )
 
 e_p_xref_table = Table("espionages_planets_xref", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("planet_id", Integer, ForeignKey("planets.id")),
     Column("espionage_id", Integer, ForeignKey("espionages.id")),
-    Column("created", TIMESTAMP(), default = datetime.now()),
     )
 
 e_rs_xref_table = Table("espionages_resources_xref", meta.metadata,
@@ -139,7 +139,7 @@ users_table = Table("users", meta.metadata,
     )
 
 
-class Building(object):
+class Building_type(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -147,7 +147,7 @@ class Building(object):
     def __repr__(self):
         return "Building Object"
 
-class Defence(object):
+class Defence_type(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -155,7 +155,7 @@ class Defence(object):
     def __repr__(self):
         return "Defence Object"
 
-class Ship(object):
+class Ship_type(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -163,7 +163,7 @@ class Ship(object):
     def __repr__(self):
         return "Ship Object"
 
-class Research(object):
+class Research_type(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -171,7 +171,7 @@ class Research(object):
     def __repr__(self):
         return "Research Object"
 
-class Resource(object):
+class Resource_type(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
@@ -179,53 +179,51 @@ class Resource(object):
     def __repr__(self):
         return "Resource Object"
 
-class Building_level(object):
+class Building(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Building xref Object"
+        return "Level %s, %s" % (self.level, self.type.name)
 
-class Research_level(object):
+class Research(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Researches xref Object"
+        return "Level %s of %s" % (self.level, self.type.name)
 
-class Resource_amount(object):
+class Resource(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Resources xref Object"
+        return "%sx %s" % (self.amount, self.type.name)
 
-class Defence_amount(object):
+class Defence(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Defences xref Object"
+        if self.amount != 1:
+            return "%sx %ss" % (self.amount, self.type.name)
+        else:
+            return "%sx %s" % (self.amount, self.type.name)
 
-class Planet_timestamp(object):
+class Ship(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Planets xref Object"
-
-class Ship_amount(object):
-    def __init__(self, **kws):
-        for word in kws:
-            self.__setattr__(word, kws[word])
-    
-    def __repr__(self):
-        return "Espionage Ships xref Object"
+        if self.amount != 1:
+            return "%sx %ss" % (self.amount, self.type.name)
+        else:
+            return "%sx %s" % (self.amount, self.type.name)
 
 class Espionage(object):
     def __init__(self, **kws):
@@ -233,7 +231,7 @@ class Espionage(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Object"
+        return "Espionage Report on %s at %d:%d:%d" % (self.owner[0].name, self.planet[0].galaxy, self.planet[0].system, self.planet[0].orbit)
 
 class Attack(object):
     def __init__(self, **kws):
@@ -288,34 +286,34 @@ class User(object):
     def __repr__(self):
         return "User Object"
 
+mapper(Attack, attacks_table)
+mapper(Resource_type, resources_table)
+mapper(Research_type, researches_table)
+mapper(Defence_type, defences_table)
+mapper(Building_type, buildings_table)
+mapper(Planet, planets_table)
+mapper(User, users_table)
+mapper(Ship_type, ships_table)
+mapper(Alliance, alliances_table)
+
+mapper(Building, e_b_xref_table, properties={'type':relation(Building_type)})
+mapper(Research, e_rh_xref_table, properties={'type':relation(Research_type)})
+mapper(Resource, e_rs_xref_table, properties={'type':relation(Resource_type)})
+mapper(Defence, e_d_xref_table, properties={'type':relation(Defence_type)})
+mapper(Ship, e_s_xref_table, properties={'type':relation(Ship_type)})
+
 mapper(Player, players_table, properties={'alliance':relation(Alliance, backref="players"),
                                           'planets':relation(Planet, secondary=players_planets_xref_table, backref="player"),
                                           'attacked':relation(Attack, backref="attackers"),
-                                          'espionaged':relation(Espionage, secondary=players_espionages_xref_table, backref="espionagers")
+                                          'espionaged':relation(Espionage, secondary=players_espionages_xref_table, backref="owner")
                                           })
 
-mapper(Espionage, espionages_table, properties={'resources':relation(Resource_amount),
-                                                'fleet':relation(Ship_amount),
-                                                'defences':relation(Defence_amount),
-                                                'buildings':relation(Building_level),
-                                                'research':relation(Research_level),
-                                                'updated':relation(Planet_timestamp),
+mapper(Espionage, espionages_table, properties={'resources':relation(Resource),
+                                                'fleet':relation(Ship),
+                                                'defences':relation(Defence),
+                                                'buildings':relation(Building),
+                                                'research':relation(Research),
                                                 'planet':relation(Planet, secondary=e_p_xref_table, backref="espionage_reports"),
                                                 })
 
-mapper(Attack, attacks_table)
-mapper(Resource, resources_table)
-mapper(Research, researches_table)
-mapper(Defence, defences_table)
-mapper(Building, buildings_table)
-mapper(Planet, planets_table)
-mapper(User, users_table)
-mapper(Ship, ships_table)
-mapper(Alliance, alliances_table)
 
-mapper(Building_level, e_b_xref_table, properties={'building':relation(Building)})
-mapper(Research_level, e_rh_xref_table, properties={'research':relation(Research)})
-mapper(Resource_amount, e_rs_xref_table, properties={'resource':relation(Resource)})
-mapper(Defence_amount, e_d_xref_table, properties={'defence':relation(Defence)})
-mapper(Ship_level, e_s_xref_table, properties={'ship':relation(Ship)})
-mapper(Planet_timestamp, e_p_xref_table)
