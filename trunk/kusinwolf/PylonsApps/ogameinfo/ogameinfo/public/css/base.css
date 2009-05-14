@@ -1,0 +1,28 @@
+a:link{
+    color:#66F;
+}
+
+a:visited{
+    color: #88B;
+}
+
+a:hover{
+    color: #C16BEF;    
+}
+
+a:active{
+    color: #F8F81F;
+}
+
+body {
+    background-color: #114;
+    color: #FFFFFF;
+}
+
+.number_highlight {
+    color: #0D0;
+}
+
+.spacer {
+    padding-left: 40px;
+}
