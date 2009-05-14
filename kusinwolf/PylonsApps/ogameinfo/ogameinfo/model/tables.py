@@ -4,6 +4,7 @@ from sqlalchemy.types import Text, Integer, String, TIMESTAMP, Boolean
 from sqlalchemy.orm import mapper, relation
 from datetime import datetime
 from re import compile
+from webhelpers.html import tags
 
 from ogameinfo.model import meta
 
@@ -201,7 +202,14 @@ class Resource(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "%sx %s" % (self.amount, self.type.name)
+        samount = ""
+        for l in range(len(str(self.amount))):
+            if l % 3 == 0 and l != 0:
+                samount = "," + samount
+            
+            samount = str(self.amount)[len(str(self.amount)) - l - 1] + samount
+            
+        return "%s x %s" % (samount, self.type.name)
 
 class Defence(object):
     def __init__(self, **kws):
@@ -210,9 +218,9 @@ class Defence(object):
     
     def __repr__(self):
         if self.amount != 1:
-            return "%sx %ss" % (self.amount, self.type.name)
+            return "%s x %ss" % (self.amount, self.type.name)
         else:
-            return "%sx %s" % (self.amount, self.type.name)
+            return "%s x %s" % (self.amount, self.type.name)
 
 class Ship(object):
     def __init__(self, **kws):
@@ -221,9 +229,9 @@ class Ship(object):
     
     def __repr__(self):
         if self.amount != 1:
-            return "%sx %ss" % (self.amount, self.type.name)
+            return "%s x %ss" % (self.amount, self.type.name)
         else:
-            return "%sx %s" % (self.amount, self.type.name)
+            return "%s x %s" % (self.amount, self.type.name)
 
 class Espionage(object):
     def __init__(self, **kws):
@@ -231,7 +239,7 @@ class Espionage(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Espionage Report on %s at %d:%d:%d" % (self.owner[0].name, self.planet[0].galaxy, self.planet[0].system, self.planet[0].orbit)
+        return "Espionage Report on %s at planet %d:%03d:%02d at %s" % (self.owner[0].name, self.planet[0].galaxy, self.planet[0].system, self.planet[0].orbit, self.created)
 
 class Attack(object):
     def __init__(self, **kws):
@@ -264,7 +272,7 @@ class Planet(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Planet Object"
+        return "%s at %d:%03d:%02d" % (self.name, self.galaxy, self.system, self.orbit)
 
 class Player(object):
     def __init__(self, **kws):
@@ -276,7 +284,7 @@ class Player(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "Player Object"
+        return "%s" % self.name
 
 class User(object):
     def __init__(self, **kws):
@@ -303,7 +311,7 @@ mapper(Defence, e_d_xref_table, properties={'type':relation(Defence_type)})
 mapper(Ship, e_s_xref_table, properties={'type':relation(Ship_type)})
 
 mapper(Player, players_table, properties={'alliance':relation(Alliance, backref="players"),
-                                          'planets':relation(Planet, secondary=players_planets_xref_table, backref="player"),
+                                          'planets':relation(Planet, secondary=players_planets_xref_table, backref="owner"),
                                           'attacked':relation(Attack, backref="attackers"),
                                           'espionaged':relation(Espionage, secondary=players_espionages_xref_table, backref="owner")
                                           })

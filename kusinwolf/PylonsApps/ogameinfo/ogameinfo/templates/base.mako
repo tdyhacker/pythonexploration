@@ -21,5 +21,7 @@
 <%def name="footer()">
     Site Map
     <BR />
-    :D
+    % for page in g.sitemap:
+      ${h.link_to(page[0], h.url_for(action=page[1]))} |
+  % endfor
 </%def>

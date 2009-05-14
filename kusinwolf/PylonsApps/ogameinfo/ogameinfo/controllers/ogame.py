@@ -140,30 +140,36 @@ class OgameController(BaseController):
         meta.Session.commit()
         
         return redirect_to(controller="ogame", action="index")
-
-#e_report = """
-#Resources on Brisingr [2:36:7] (Player 'Lord Dragon')
-#at 04-28 07:44:24
-#Metal:	34.199 	Crystal:	31.113
-#Deuterium:	8.208 	Energy:	1.718
-#
-#
-#Fleets
-#Defense
-#Rocket Launcher	1 	Light Laser	4
-#Heavy Laser	2 	Gauss Cannon	3
-#Ion Cannon	1
-#Buildings
-#Metal Mine	14 	Crystal Mine	14
-#Deuterium Synthesizer	8 	Solar Plant	17
-#Robotics Factory	5 	Shipyard	6
-#Research Lab	5 	Missile Silo	2
-#Research
-#Espionage Technology	5 	Computer Technology	6
-#Weapons Technology	7 	Shielding Technology	6
-#Armor Technology	7 	Energy Technology	8
-#Hyperspace Technology	4 	Combustion Drive	7
-#Impulse Drive	5 	Hyperspace Drive	3
-#Laser Technology	10 	Ion Technology	7
-#Plasma Technology	6 	Expedition Technology	3
-#Chance of counter-espionage:0% """
+    
+    def espionage_show(self, id):
+        c.e_report = meta.Session.query(Espionage).filter_by(id=int(id)).first()
+        
+        amount = c.e_report.resources[0].amount + c.e_report.resources[1].amount + c.e_report.resources[2].amount
+        samount = ""
+        for l in range(len(str(amount))):
+            if l % 3 == 0 and l != 0:
+                samount = "," + samount
+            
+            samount = str(amount)[len(str(amount)) - l - 1] + samount
+        c.samount = samount
+        return render('/espionage_show.mako')
+    
+    def planet_search(self):
+        id = str(request.params['galaxy'])
+        id += "%03d" % int(request.params['system'])
+        id += "%02d" % int(request.params['orbit'])
+        return redirect_to(action='planet_show', id=id)
+    
+    def planet_show(self, id):
+        id = str(id)
+        if len(id) != 6:
+            return "Invalid ID"
+        c.planet = meta.Session.query(Planet).filter_by(galaxy = int(id[0]), system = int(id[1:4]), orbit = int(id[4:6])).first()
+        if c.planet == None:
+            return "Planet either does not exist or has not been scanned yet"
+        else:
+            return render('/planet_show.mako')
+    
+    def player_show(self, id):
+        c.player = meta.Session.query(Player).filter_by(id=id).first()
+        return render('/player_show.mako')
