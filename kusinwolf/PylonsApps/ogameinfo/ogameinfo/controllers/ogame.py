@@ -11,6 +11,7 @@ from ogameinfo.model.tables import *
 
 from authkit.authorize.pylons_adaptors import authorize
 from authkit.permissions import RemoteUser, ValidAuthKitUser, UserIn
+import authkit
 
 log = logging.getLogger(__name__)
 
@@ -48,8 +49,6 @@ class OgameController(BaseController):
     
     def auth_change_password(self):
         '''functional method'''
-        user = meta.Session.query(User).filter_by(username=login, password=password).first()
-        
         if str(request.params['password_1']) == str(request.params['password_2']):
             user.password = str(request.params['password_1'])
             meta.Session.save_or_update(user)
@@ -59,6 +58,7 @@ class OgameController(BaseController):
 
     def index(self):
         '''mako method'''
+        request.cookies['authkit']
         c.e_reports = meta.Session.query(Espionage).order_by("id DESC").all()
         return render('/index.mako')
     
