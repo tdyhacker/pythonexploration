@@ -24,8 +24,6 @@ class OgameController(BaseController):
         
         e_report = e_report.replace(".", "")
         
-        print e_report.split("\r\n")
-        
         info = {}
         info['year'] = datetime.now().year
         
@@ -49,16 +47,16 @@ class OgameController(BaseController):
             if compile(".*Deuterium:\t(.*)\tEnergy:\t(.*)").match(row):
                 info['deuterium_and_energy'] = compile(".*Deuterium:\t(.*)\tEnergy:\t(.*)").match(row).groups()
             
-            if compile("Fleets").match(row):
+            if row == "Fleets":
                 stage = 1
                 
-            if compile("Defense").match(row):
+            if row == "Defense":
                 stage = 2
                 
-            if compile("Buildings").match(row):
+            if row == "Buildings":
                 stage = 3
                 
-            if compile("Research").match(row):
+            if row == "Research":
                 stage = 4
             
             
