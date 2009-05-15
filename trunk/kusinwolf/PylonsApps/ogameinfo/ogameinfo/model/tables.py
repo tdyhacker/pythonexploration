@@ -131,11 +131,12 @@ ships_table = Table("ships", meta.metadata,
     )
 
 users_table = Table("users", meta.metadata,
-    Column("id", Integer, primary_key=True),
+    Column("uid", Integer, primary_key=True),
     Column("username", Text),
     Column("firstname", Text),
     Column("lastname", Text),
     Column("password", Text),
+    Column("group_uid", Integer),
     Column("created", TIMESTAMP(), default = datetime.now()),
     )
 
