@@ -12,14 +12,59 @@ from ogameinfo.model.tables import *
 log = logging.getLogger(__name__)
 
 class OgameController(BaseController):
+    
+    def auth(self):
+        login = str(request.params['login'])
+        password = str(request.params['password'])
+        
+        if meta.Session.query(User).filter_by(username=login, password=password).first():
+            session['login'] = login
+            session['password'] = password
+            session.save()
+        
+        return redirect_to(action='index')
+
+    def auth_change_display(self):
+        '''mako method'''
+        
+        self.auth_check()
+        
+        return render("/auth_change_display.mako")
+    
+    def auth_change_password(self):
+        '''functional method'''
+        
+        self.auth_check()
+        
+        user = meta.Session.query(User).filter_by(username=login, password=password).first()
+        
+        if str(request.params['password_1']) == str(request.params['password_2']):
+            user.password = str(request.params['password_1'])
+            meta.Session.save_or_update(user)
+        else:
+            c.fail = "Passwords did not math"
+            return redirect_to(action="auth_change_display")
+    
+    def auth_check(self):
+        '''functional and mako method'''
+        if not meta.Session.query(User).filter_by(username=str(session['login']), password=str(session['password'])).first():
+            c.fail = "Login attempt failed"
+            return render('/login.mako')
+        # They passed the auth, let them through
 
     def index(self):
         '''mako method'''
+        
+        self.auth_check()
+        
         c.e_reports = meta.Session.query(Espionage).order_by("id DESC").all()
         return render('/index.mako')
     
     def espionage_insert(self):
         '''functional method'''
+        
+        self.auth_check()
+        
         e_report = str(request.params['report'])
         
         e_report = e_report.replace(".", "")
@@ -99,7 +144,7 @@ class OgameController(BaseController):
         metal = Resource(amount=int(info['metal_and_crystal'][0]))
         crystal = Resource(amount=int(info['metal_and_crystal'][1]))
         deuterium = Resource(amount=int(info['deuterium_and_energy'][0]))
-        energy = Resource(amount=int(info['deuterium_and_energy'][0]))
+        energy = Resource(amount=int(info['deuterium_and_energy'][1]))
         metal.type = meta.Session.query(Resource_type).filter_by(name="Metal").first()
         crystal.type = meta.Session.query(Resource_type).filter_by(name="Crystal").first()
         deuterium.type = meta.Session.query(Resource_type).filter_by(name="Deuterium").first()
@@ -140,6 +185,9 @@ class OgameController(BaseController):
         return redirect_to(controller="ogame", action="index")
     
     def espionage_show(self, id):
+        
+        self.auth_check()
+        
         c.e_report = meta.Session.query(Espionage).filter_by(id=int(id)).first()
         
         amount = c.e_report.resources[0].amount + c.e_report.resources[1].amount + c.e_report.resources[2].amount
@@ -153,12 +201,18 @@ class OgameController(BaseController):
         return render('/espionage_show.mako')
     
     def planet_search(self):
+        
+        self.auth_check()
+        
         id = str(request.params['galaxy'])
         id += "%03d" % int(request.params['system'])
         id += "%02d" % int(request.params['orbit'])
         return redirect_to(action='planet_show', id=id)
     
     def planet_show(self, id):
+        
+        self.auth_check()
+        
         id = str(id)
         if len(id) != 6:
             return "Invalid ID"
@@ -169,5 +223,8 @@ class OgameController(BaseController):
             return render('/planet_show.mako')
     
     def player_show(self, id):
+        
+        self.auth_check()
+        
         c.player = meta.Session.query(Player).filter_by(id=id).first()
         return render('/player_show.mako')

@@ -13,4 +13,4 @@ class Globals(object):
         'app_globals' variable
 
         """
-        self.sitemap = [('Homepage', 'index'),]
+        self.sitemap = [('Homepage', 'index'), ('Change Password', 'auth_change_password'),]
