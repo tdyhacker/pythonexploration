@@ -47,7 +47,7 @@ class OgameController(BaseController):
     
     def auth_check(self):
         '''functional and mako method'''
-        if not meta.Session.query(User).filter_by(username=str(session['login']), password=str(session['password'])).first():
+        if not session.has_key('login') or not session.has_key('password') or meta.Session.query(User).filter_by(username=str(session['login']), password=str(session['password'])).first() == None:
             c.fail = "Login attempt failed"
             return render('/login.mako')
         # They passed the auth, let them through
