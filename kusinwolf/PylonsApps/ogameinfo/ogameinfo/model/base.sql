@@ -64,6 +64,9 @@ INSERT INTO resources (name) VALUES ('Metal');
 INSERT INTO resources (name) VALUES ('Crystal');
 INSERT INTO resources (name) VALUES ('Deuterium');
 INSERT INTO resources (name) VALUES ('Energy');
+INSERT INTO resources (name) VALUES ('Metal Debris');
+INSERT INTO resources (name) VALUES ('Crystal Debris');
+
 
 INSERT INTO alliances (name, rank, members, points) VALUES ('No Alliance', 0, 0, 0);
 
