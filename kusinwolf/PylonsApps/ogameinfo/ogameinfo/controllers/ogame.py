@@ -12,7 +12,6 @@ from ogameinfo.model.tables import *
 log = logging.getLogger(__name__)
 
 class OgameController(BaseController):
-    fail = False
     
     def auth(self):
         login = str(request.params['login'])
@@ -28,6 +27,7 @@ class OgameController(BaseController):
     def auth_change_display(self):
         '''mako method'''
         
+        self.fail = False
         self.auth_check()
         if not self.fail:
             return render("/auth_change_display.mako")
@@ -57,6 +57,7 @@ class OgameController(BaseController):
     def index(self):
         '''mako method'''
         
+        self.fail = False
         self.auth_check()
         
         if not self.fail:
@@ -66,6 +67,7 @@ class OgameController(BaseController):
     def espionage_insert(self):
         '''functional method'''
         
+        self.fail = False
         self.auth_check()
         
         if not self.fail:
@@ -190,6 +192,7 @@ class OgameController(BaseController):
     
     def espionage_show(self, id):
         
+        self.fail = False
         self.auth_check()
         
         if not self.fail:
@@ -207,6 +210,7 @@ class OgameController(BaseController):
     
     def planet_search(self):
         
+        self.fail = False
         self.auth_check()
         
         if not self.fail:
@@ -217,6 +221,7 @@ class OgameController(BaseController):
     
     def planet_show(self, id):
         
+        self.fail = False
         self.auth_check()
         
         if not self.fail:
@@ -231,6 +236,7 @@ class OgameController(BaseController):
     
     def player_show(self, id):
         
+        self.fail = False
         self.auth_check()
         
         if not self.fail:
