@@ -11,6 +11,8 @@ ${h.ul(c.e_report.fleet)}
 Stationed in orbit,<br />
 ${h.ul(c.e_report.defences)}
 defences protecting the planet,<br />
+${h.ul(c.e_report.buildings)}
+structures,<br />
 ${h.ul(c.e_report.research)}
 Researched<br /><br />
 with a ${c.e_report.counter_espionage}% chance of losing espionage probe(s)<br />
