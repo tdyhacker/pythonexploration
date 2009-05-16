@@ -9,7 +9,7 @@ engine = None
 
 # SQLAlchemy session manager.  Updated by model.init_model()
 #Session = scoped_session(sessionmaker(autoflush=True, autocommit=True))
-Session = scoped_session(sessionmaker(autoflush=True, autocommit=True)) # Forcing the use of deprecated methods
+Session = scoped_session(sessionmaker(autoflush=True, transactional=True)) # Forcing the use of deprecated methods
 
 
 # Global metadata. If you have multiple databases with overlapping table
