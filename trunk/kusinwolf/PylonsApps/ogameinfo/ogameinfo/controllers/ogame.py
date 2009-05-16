@@ -149,22 +149,24 @@ class OgameController(BaseController):
         crystal = Resource(amount=int(info['metal_and_crystal'][1]))
         deuterium = Resource(amount=int(info['deuterium_and_energy'][0]))
         energy = Resource(amount=int(info['deuterium_and_energy'][1]))
-        metal_debris = Resource(amount=int(info['debris_metal_and_crystal'][0]))
-        crystal_debris = Resource(amount=int(info['debris_metal_and_crystal'][1]))
         
         metal.type = meta.Session.query(Resource_type).filter_by(name="Metal").first()
         crystal.type = meta.Session.query(Resource_type).filter_by(name="Crystal").first()
         deuterium.type = meta.Session.query(Resource_type).filter_by(name="Deuterium").first()
         energy.type = meta.Session.query(Resource_type).filter_by(name="Energy").first()
-        metal_debris.type = meta.Session.query(Resource_type).filter_by(name="Metal Debris").first()
-        crystal_debris.type = meta.Session.query(Resource_type).filter_by(name="Crystal Debris").first()
         
         espionage_report.resources.append(metal)
         espionage_report.resources.append(crystal)
         espionage_report.resources.append(deuterium)
         espionage_report.resources.append(energy)
-        espionage_report.resources.append(metal_debris)
-        espionage_report.resources.append(crystal_debris)
+        
+        if info.has_key('debris_metal_and_crystal'):
+            metal_debris = Resource(amount=int(info['debris_metal_and_crystal'][0]))
+            crystal_debris = Resource(amount=int(info['debris_metal_and_crystal'][1]))
+            metal_debris.type = meta.Session.query(Resource_type).filter_by(name="Metal Debris").first()
+            crystal_debris.type = meta.Session.query(Resource_type).filter_by(name="Crystal Debris").first()
+            espionage_report.resources.append(metal_debris)
+            espionage_report.resources.append(crystal_debris)
         
         for total in range(fleet_rows):
             for col in range(0, len(info['fleet_row%d' % total]), 2):
