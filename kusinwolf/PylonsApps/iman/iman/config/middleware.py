@@ -9,6 +9,11 @@ from pylons.middleware import ErrorHandler, StatusCodeRedirect
 from pylons.wsgiapp import PylonsApp
 from routes.middleware import RoutesMiddleware
 
+import authkit.authenticate
+from authkit.users import sqlalchemy_04_driver
+from sqlalchemymanager import SQLAlchemyManager
+from iman.model import setup_model
+
 from iman.config.environment import load_environment
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
@@ -50,6 +55,10 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     if asbool(full_stack):
         # Handle Python exceptions
         app = ErrorHandler(app, global_conf, **config['pylons.errorware'])
+
+        # AuthKit
+        app = authkit.authenticate.middleware(app, app_conf)
+        app = SQLAlchemyManager(app, app_conf, [setup_model, sqlalchemy_04_driver.setup_model])
 
         # Display error documents for 401, 403, 404 status codes (and
         # 500 when debug is disabled)

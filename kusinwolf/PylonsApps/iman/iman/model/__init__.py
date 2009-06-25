@@ -2,7 +2,7 @@
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from iman.model import meta
+from iman.model import meta, tables
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
@@ -15,6 +15,8 @@ def init_model(engine):
     meta.Session.configure(bind=engine)
     meta.engine = engine
 
+def setup_model(model, metadata, **p):
+    pass
 
 ## Non-reflected tables may be defined and mapped at module level
 #foo_table = sa.Table("Foo", meta.metadata,
