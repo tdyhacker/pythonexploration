@@ -40,9 +40,14 @@ class BlogController(BaseController):
             session['login'] = login
             session['password'] = password
             session.save()
-        
-        return redirect_to(action='index')
+            return redirect_to(action='index')
     
     def index(self):
         '''functional and mako method'''
+        c.all_questions = meta.Session.query(Question).orderby("uid DESC").all()
         return render('/index.mako')
+    
+    def question_show(self, id):
+        '''mako method'''
+        c.question = meta.Session.query(Question).filter_by(id=id).first()
+        return render('/question_show.mako')

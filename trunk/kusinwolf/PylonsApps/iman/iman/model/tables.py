@@ -8,9 +8,20 @@ from webhelpers.html import tags
 
 from iman.model import meta
 
+users_table = Table("users", meta.metadata,
+    Column("uid", Integer, primary_key=True),
+    Column("username", Text),
+    Column("firstname", Text),
+    Column("lastname", Text),
+    Column("password", Text),
+    Column("group_uid", Integer),
+    Column("created", TIMESTAMP(), default = datetime.now()),
+    )
+
 questions_table = Table("questions", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("question", Text),
+    Column("user_id", Integer, ForeignKey("users.uid")),
     Column("created", TIMESTAMP(), default = datetime.now()),
     Column("modified", TIMESTAMP(), default = datetime.now()),
     )
@@ -23,6 +34,7 @@ r_to_q_xref_table = Table("responses_to_question_xref", meta.metadata,
 responses_table = Table("responses", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("response", Text),
+    Column("user_id", Integer, ForeignKey("users.uid")),
     Column("created", TIMESTAMP(), default = datetime.now()),
     Column("modified", TIMESTAMP(), default = datetime.now()),
     )
@@ -43,8 +55,18 @@ class Response(object):
     def __repr__(self):
         return "Response: %s" % self.question
 
-mapper(Question, questions_table)
-mapper(Response, responses_table, properties={'question':relation(Question, secondary=_xref_table, backref="responses")})
+class User(object):
+    def __init__(self, **kws):
+        for word in kws:
+            self.__setattr__(word, kws[word])
+    
+    def __repr__(self):
+        return "User: %s '%s' %s" % (self.firstname, self.username, self.lastname)
+    
+mapper(User, users_table)
+mapper(Question, questions_table, properties={'user' : relation(User, backref="questions")})
+mapper(Response, responses_table, properties={'question' : relation(Question, secondary=r_to_q_xref_table, backref="responses"),
+                                              'user' : relation(User, backref="responses")})
 
 
 
