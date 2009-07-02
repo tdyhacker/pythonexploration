@@ -45,7 +45,7 @@ class Question(object):
             self.__setattr__(attr, kws[attr])
     
     def __repr__(self):
-        return "Question: %s" % self.question
+        return "Question: %(question)s" % self.__dict__
 
 class Response(object):
     def __init__(self, **kws):
@@ -53,7 +53,7 @@ class Response(object):
             self.__setattr__(attr, kws[attr])
     
     def __repr__(self):
-        return "Response: %s" % self.question
+        return "Response to %(question)s" % self.__dict__
 
 class User(object):
     def __init__(self, **kws):
@@ -61,7 +61,7 @@ class User(object):
             self.__setattr__(word, kws[word])
     
     def __repr__(self):
-        return "User: %s '%s' %s" % (self.firstname, self.username, self.lastname)
+        return "User: %(firstname)s '%(username)s' %(lastname)s" % self.__dict__
     
 mapper(User, users_table)
 mapper(Question, questions_table, properties={'user' : relation(User, backref="questions")})

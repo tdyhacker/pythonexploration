@@ -23,6 +23,6 @@
     Site Map
     <BR />
     % for page in g.sitemap:
-      ${h.link_to(page[0], h.url_for(action=page[1]))} |
+      ${h.link_to(page[0], h.url_for(action=page[1], id=None))} |
   % endfor
 </%def>

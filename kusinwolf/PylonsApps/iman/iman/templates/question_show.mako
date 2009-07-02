@@ -3,12 +3,19 @@
     <title>Question</title>
 </%def>
 
-<h3>Question - ${question.id}<h3><br />
-<h5>Writen by ${question.user.username} on ${question.created} and modified on ${question.modified}</h5><br />
+<h3>Question - ${c.question.question}<h3>
+<h5>Writen by ${c.question.user.username} on ${c.question.created} and modified on ${c.question.modified}</h5><br />
+
+Add a response here<br />
+${h.form("/blog/response_insert", method="post")}
+    ${h.hidden(name='id', value=c.question.id, checked='checked')}
+    ${h.textarea(name="response", content="", cols=60, rows=7)}<br />
+    ${h.submit("Add", "Add", id=None)}<br />
+${h.end_form()}
 
 <h4>Responses</h4><br />
-% for response in c.all_questions:
-  <p>${response.body}<br /> posted by ${response.user.username} on ${response.created} and last modified ${response.modified}</p>
+% for response in c.question.responses:
+  <p>${response.response}<br /><h6>posted by ${response.user.username} on ${response.created} and last modified ${response.modified}</h6></p>
 % endfor
 
 <br />
