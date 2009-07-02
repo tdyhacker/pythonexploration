@@ -40,14 +40,58 @@ class BlogController(BaseController):
             session['login'] = login
             session['password'] = password
             session.save()
-            return redirect_to(action='index')
+        
+        return redirect_to(action='index')
     
     def index(self):
         '''functional and mako method'''
-        c.all_questions = meta.Session.query(Question).orderby("uid DESC").all()
+        c.all_questions = meta.Session.query(Question).order_by("id DESC").all()
         return render('/index.mako')
     
     def question_show(self, id):
         '''mako method'''
         c.question = meta.Session.query(Question).filter_by(id=id).first()
         return render('/question_show.mako')
+    
+    def question_insert(self):
+        '''functional method'''
+        meta.Session.begin()
+        
+        user = meta.Session.query(User).filter_by(username=session['login'])
+        
+        question = Question(question = str(request.params['question']))
+        response = Response(response = str(request.params['response']))
+        response.user = user
+        
+        if response.response == '' or response.response == None:
+            del response
+        else:
+            question.responses.append(response)
+        
+        question.user = user
+        
+        meta.Session.commit()
+        
+        return redirect_to(controller="blog", action="index")
+    
+    def response_insert(self):
+        '''functional method'''
+        meta.Session.begin()
+        
+        user = meta.Session.query(User).filter_by(username=session['login'])
+        
+        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
+        r = Response(response = str(request.params['response']), user = user.id)
+        
+        if r.response == '' or r.response == None:
+            del r
+        else:
+            q.responses.append(r)
+        
+        meta.Session.commit()
+        
+        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
+    
+    def comment_insert(self):
+        '''functional method'''
+        pass
