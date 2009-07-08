@@ -59,6 +59,9 @@ class User(object):
     def __init__(self, **kws):
         for word in kws:
             self.__setattr__(word, kws[word])
+        
+        # Assign work around values
+        self.id = self.__dict__.get("uid")
     
     def __repr__(self):
         return "User: %(firstname)s '%(username)s' %(lastname)s" % self.__dict__
