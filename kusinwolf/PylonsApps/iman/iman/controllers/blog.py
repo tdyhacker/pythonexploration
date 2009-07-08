@@ -37,15 +37,15 @@ class BlogController(BaseController):
         password = str(request.params['password'])
         
         if meta.Session.query(User).filter_by(username=login, password=password).first():
-            session['login'] = login
-            session['password'] = password
-            session.save()
-        
-        return redirect_to(action='index')
+            return redirect_to(action='index')
     
     def index(self):
         '''functional and mako method'''
-        c.all_questions = meta.Session.query(Question).order_by("id DESC").all()
+        
+        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER"))
+        
+        c.personal_questions = meta.Session.query(Question).filter_by(user=user.id).order_by("id DESC").all()
+        c.not_personal_questions = meta.Session.query(Question).filter_by(user!=user.id).order_by("id DESC").all()
         return render('/index.mako')
     
     def question_show(self, id):
@@ -57,7 +57,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=session['login'])
+        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER"))
         
         question = Question(question = str(request.params['question']))
         response = Response(response = str(request.params['response']))
@@ -78,7 +78,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=session['login'])
+        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER"))
         
         q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
         r = Response(response = str(request.params['response']), user = user.id)

@@ -11,7 +11,24 @@ ${h.form("/blog/question_insert", method="post")}
     ${h.submit("Add", "Add")}<br />
 ${h.end_form()}
 
-${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.all_questions])}
+<table>
+    <tr>
+        <td>
+            <h5>Your personal Questions</h5>
+        </td>
+        <td>
+            <h5>Everyone else's Questions</h5>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            ${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.personal_questions])}
+        </td>
+        <td>
+            ${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.not_personal_questions])}
+        </td>
+    </tr>
+</table>
 
 <br />
 <br />
