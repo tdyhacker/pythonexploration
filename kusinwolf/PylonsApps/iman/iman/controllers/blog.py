@@ -42,7 +42,7 @@ class BlogController(BaseController):
     def index(self):
         '''functional and mako method'''
         
-        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER"))
+        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
         
         c.personal_questions = meta.Session.query(Question).filter_by(user=user.uid).order_by("id DESC").all()
         c.not_personal_questions = meta.Session.query(Question).filter_by(user!=user.uid).order_by("id DESC").all()
@@ -78,7 +78,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER"))
+        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
         
         q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
         r = Response(response = str(request.params['response']), user = user.uid)
