@@ -57,7 +57,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER"))
+        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
         
         question = Question(question = str(request.params['question']))
         response = Response(response = str(request.params['response']))
