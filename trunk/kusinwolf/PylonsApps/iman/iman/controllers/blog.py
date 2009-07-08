@@ -44,8 +44,8 @@ class BlogController(BaseController):
         
         user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
         
-        c.personal_questions = meta.Session.query(Question).filter_by(user=user.uid).order_by("id DESC").all()
-        c.not_personal_questions = meta.Session.query(Question).filter_by(user!=user.uid).order_by("id DESC").all()
+        c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
+        c.not_personal_questions = meta.Session.query(Question).filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
         return render('/index.mako')
     
     def question_show(self, id):
