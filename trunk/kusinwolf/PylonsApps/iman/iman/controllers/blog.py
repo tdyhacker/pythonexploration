@@ -59,8 +59,8 @@ class BlogController(BaseController):
         
         user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
         
-        question = Question(question = str(request.params['question']))
-        response = Response(response = str(request.params['response']))
+        question = Question(question = str(request.params['question'].replace("'", "\'")))
+        response = Response(response = str(request.params['response'].replace("'", "\'")))
         response.user = user
         
         if response.response == '' or response.response == None:
@@ -81,7 +81,7 @@ class BlogController(BaseController):
         user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
         
         q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
-        r = Response(response = str(request.params['response']), user = user.uid)
+        r = Response(response = str(request.params['response'].replace("'", "\'")), user = user)
         
         if r.response == '' or r.response == None:
             del r
