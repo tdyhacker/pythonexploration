@@ -2,7 +2,7 @@
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from iman.model import meta, tables
+from iman.model import meta, tables, todo_tables
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
