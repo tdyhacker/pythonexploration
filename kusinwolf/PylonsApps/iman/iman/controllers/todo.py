@@ -21,16 +21,10 @@ class TodoController(BaseController):
     def __before__(self):
         '''functional and mako method'''
         pass
-        #if not request.environ.get("REMOTE_USER"):
-        #    response.status = "401 Not authenticated"
-        #    return "You are not authenticated"
-        #if not session.has_key('login') or not session.has_key('password') or meta.Session.query(User).filter_by(username=str(session['login']), password=str(session['password'])).first() == None:
-        #    c.fail = "Login attempt failed"
-        #    return render('/login.mako')
-        # They passed the auth, let them through
 
     def signout(self):
-        return "You're now signed out."
+        # look into this http://wiki.pylonshq.com/display/pylonscookbook/Authentication+and+Authorization for replacing authkit
+        return "Thank you come again! ^_^"
     
     def auth(self):
         login = str(request.params['login'])
@@ -44,5 +38,19 @@ class TodoController(BaseController):
     
     def index(self):
         '''functional and mako method'''
-        c.all_questions = meta.Session.query(Question).orderby("uid DESC").all()
-        return render('/todo_index.mako')
+        c.user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
+        
+        pre_sort = {}
+        c.tasks = []
+        for task in  meta.Session.query(Task).filter_by(user=c.user).all():
+            if pre_sort.get(task.priority.severity):
+                pre_sort[task.priority.severity].append(task)
+            else:
+                pre_sort[task.priority.severity] = [task,]
+        
+        for item in pre_sort.keys():
+            c.tasks.extend(pre_sort[item])
+            
+        c.priorties = meta.Session.query(Priority).all()
+        c.categories = meta.Session.query(Category).all()
+        return render('/todo/index.mako')

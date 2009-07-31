@@ -125,15 +125,15 @@ class Attribute(object):
     def __repr__(self):
         return "<General Attribute Node with (%d) lists and (%d) attributes>" % (len([item for item in self.__dict__.keys() if (type(self.__dict__[item]) == list) or (type(self.__dict__[item]) == tuple)]), (len(self.__dict__.keys()) - len([item for item in self.__dict__.keys() if (type(self.__dict__[item]) == list) or (type(self.__dict__[item]) == tuple)])))
 
-class Question(object, Attribute):
+class Question(Attribute):
     def __repr__(self):
         return "Question: %(question)s" % self.__dict__
 
-class Response(object, Attribute):
+class Response(Attribute):
     def __repr__(self):
         return "Response to %(question)s" % self.__dict__
 
-class User(object, Attribute):
+class User(Attribute):
     def __repr__(self):
         return "User: %(firstname)s '%(username)s' %(lastname)s" % self.__dict__
     

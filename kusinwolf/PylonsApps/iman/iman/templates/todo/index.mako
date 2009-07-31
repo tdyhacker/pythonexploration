@@ -1,9 +1,9 @@
-<%inherit file="base.mako"/>
+<%inherit file="../base.mako"/>
 <%def name="head_tags()">
     <title>Blog Index</title>
 </%def>
 
-Add a question here<br />
+Add a task<br />
 ${h.form("/blog/question_insert", method="post")}
     ${h.textarea(name="question", content="", cols=60, rows=1, wrap="hard")}<br />
     Quick Response<br />
@@ -14,25 +14,14 @@ ${h.end_form()}
 <table cellpadding='3'>
     <tr>
         <td>
-            <h5>Your personal Questions</h5>
-        </td>
-        <td bgcolor='#000000'>
-        </td>
-        <td>
-            <h5>Everyone else's Questions</h5>
+            <h5>Your Tasks</h5>
         </td>
     </tr>
     <tr>
         <td valign='top'>
             ${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.personal_questions])}
         </td>
-        <td bgcolor='#000000'>
-        </td>
-        <td valign='top'>
-            ${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.not_personal_questions])}
-        </td>
     </tr>
 </table>
-
 <br />
 <br />
