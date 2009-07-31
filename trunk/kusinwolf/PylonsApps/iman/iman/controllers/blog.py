@@ -30,7 +30,7 @@ class BlogController(BaseController):
         # They passed the auth, let them through
 
     def signout(self):
-        return "You're now signed out."
+        return "Thank you come again! ^_^"
     
     def auth(self):
         login = str(request.params['login'])
@@ -38,19 +38,37 @@ class BlogController(BaseController):
         
         if meta.Session.query(User).filter_by(username=login, password=password).first():
             return redirect_to(action='index')
+            
+    def convertHTMLTags(self, text):
+        '''functional method'''
+        
+        text = text.replace("[br]","<br />").replace("[BR]","<br />")
+        text = text.replace("[p]","<p>").replace("[/p]","</p>").replace("[P]","<p>").replace("[/P]","</p>")
+        text = text.replace("[ul]","<ul>").replace("[/ul]","</ul>").replace("[UL]","<ul>").replace("[/UL]","</ul>")
+        text = text.replace("[li]","<li>").replace("[/li]","</li>").replace("[LI]","<li>").replace("[/LI]","</li>")
+        text = text.replace("[b]","<b>").replace("[/b]","</b>").replace("[B]","<b>").replace("[/B]","</b>")
+        text = text.replace("[i]","<i>").replace("[/i]","</i>").replace("[I]","<i>").replace("[/I]","</i>")
+        text = text.replace("[u]","<u>").replace("[/u]","</u>").replace("[U]","<u>").replace("[/U]","</u>")
+        
+        return text
     
     def index(self):
         '''functional and mako method'''
         
         user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
-        
-        c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
-        c.not_personal_questions = meta.Session.query(Question).filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
+        if meta.Session.query(Question).all() != []:
+            c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
+            c.not_personal_questions = meta.Session.query(Question).filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
+        else:
+            c.personal_questions = c.not_personal_questions = []
         return render('/index.mako')
     
     def question_show(self, id):
         '''mako method'''
         c.question = meta.Session.query(Question).filter_by(id=id).first()
+        if c.question.user == None:
+            # Temp name to help with error checking and debugging on the dev side
+            c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
         return render('/question_show.mako')
     
     def question_insert(self):
