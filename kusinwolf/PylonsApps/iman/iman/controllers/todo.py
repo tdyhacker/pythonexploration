@@ -9,36 +9,24 @@ from iman.lib.base import BaseController, render
 from iman.model import meta
 from iman.model.todo_tables import *
 
-from authkit.authorize.pylons_adaptors import authorize
-from authkit.permissions import RemoteUser, ValidAuthKitUser, UserIn
-import authkit
-
 log = logging.getLogger(__name__)
 
-class TodoController(BaseController):
-
-    @authorize(ValidAuthKitUser())
-    def __before__(self):
-        '''functional and mako method'''
-        pass
-
-    def signout(self):
-        # look into this http://wiki.pylonshq.com/display/pylonscookbook/Authentication+and+Authorization for replacing authkit
-        return "Thank you come again! ^_^"
+class TodoController(BaseController):  
     
-    def auth(self):
-        login = str(request.params['login'])
-        password = str(request.params['password'])
-        
-        if meta.Session.query(User).filter_by(username=login, password=password).first():
-            session['login'] = login
-            session['password'] = password
-            session.save()
-            return redirect_to(action='index')
+    def __before__(self):
+        # Basic Home grown security layer
+        if session.get("identity") is None:
+            return redirect_to(controller="account", action="login")
+    
+    def signout(self):
+        return redirect_to(controller="account", action="logout")
+    
+    def change_password(self):
+        return redirect_to(controller="account", action="change_password")
     
     def index(self):
         '''functional and mako method'''
-        c.user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
+        c.user = meta.Session.query(User).filter_by(username="kusinwolf").first()
         
         pre_sort = {}
         c.tasks = []
