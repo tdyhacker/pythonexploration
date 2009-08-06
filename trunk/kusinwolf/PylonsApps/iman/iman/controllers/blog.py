@@ -9,36 +9,21 @@ from iman.lib.base import BaseController, render
 from iman.model import meta
 from iman.model.tables import *
 
-from authkit.authorize.pylons_adaptors import authorize
-from authkit.permissions import RemoteUser, ValidAuthKitUser, UserIn
-import authkit
-
 log = logging.getLogger(__name__)
 
 class BlogController(BaseController):
-
-    @authorize(ValidAuthKitUser())
+    
     def __before__(self):
-        '''functional and mako method'''
-        pass
-        #if not request.environ.get("REMOTE_USER"):
-        #    response.status = "401 Not authenticated"
-        #    return "You are not authenticated"
-        #if not session.has_key('login') or not session.has_key('password') or meta.Session.query(User).filter_by(username=str(session['login']), password=str(session['password'])).first() == None:
-        #    c.fail = "Login attempt failed"
-        #    return render('/login.mako')
-        # They passed the auth, let them through
+        # Basic Home grown security layer
+        if session.get("identity") is None:
+            return redirect_to(controller="account", action="login")
 
     def signout(self):
-        return "Thank you come again! ^_^"
+        return redirect_to(controller="account", action="logout")
     
-    def auth(self):
-        login = str(request.params['login'])
-        password = str(request.params['password'])
-        
-        if meta.Session.query(User).filter_by(username=login, password=password).first():
-            return redirect_to(action='index')
-            
+    def change_password(self):
+        return redirect_to(controller="account", action="change_password")
+    
     def convertHTMLTags(self, text):
         '''functional method'''
         
@@ -54,8 +39,7 @@ class BlogController(BaseController):
     
     def index(self):
         '''functional and mako method'''
-        
-        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
+        user = meta.Session.query(User).filter_by(username="dev").first()
         if meta.Session.query(Question).all() != []:
             c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
             c.not_personal_questions = meta.Session.query(Question).filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
@@ -75,7 +59,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
+        user = meta.Session.query(User).filter_by(username="dev").first()
         
         question = Question(question = str(request.params['question'].replace("'", "\'")))
         response = Response(response = str(request.params['response'].replace("'", "\'")))
@@ -96,7 +80,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=request.environ.get("REMOTE_USER")).first()
+        user = meta.Session.query(User).filter_by(username="dev").first()
         
         q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
         r = Response(response = str(request.params['response'].replace("'", "\'")), user = user)

@@ -137,6 +137,19 @@ class User(Attribute):
     def __repr__(self):
         return "User: %(firstname)s '%(username)s' %(lastname)s" % self.__dict__
     
+    def getByID(self, id):
+        return meta.Session.query(User).filter_by(uid=id).first()
+    
+    def isUnique(self, username):
+        return meta.Session.query(User).filter_by(username=username.lower()).first() is None
+    
+    def authenticate(self, username, password):
+        user = meta.Session.query(User).filter_by(username=username).first()
+        if user and user.password == password:
+            return user
+        else:
+            return None
+    
 mapper(User, users_table)
 mapper(Question, questions_table, properties={'user' : relation(User, backref="questions")})
 mapper(Response, responses_table, properties={'question' : relation(Question, secondary=r_to_q_xref_table, backref="responses"),
