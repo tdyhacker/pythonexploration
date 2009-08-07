@@ -39,7 +39,7 @@ class BlogController(BaseController):
     
     def index(self):
         '''functional and mako method'''
-        user = meta.Session.query(User).filter_by(username="dev").first()
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
         if meta.Session.query(Question).all() != []:
             c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
             c.not_personal_questions = meta.Session.query(Question).filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
@@ -59,7 +59,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username="dev").first()
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
         
         question = Question(question = str(request.params['question'].replace("'", "\'")))
         response = Response(response = str(request.params['response'].replace("'", "\'")))
@@ -80,7 +80,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username="dev").first()
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
         
         q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
         r = Response(response = str(request.params['response'].replace("'", "\'")), user = user)

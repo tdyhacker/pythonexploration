@@ -26,7 +26,7 @@ class TodoController(BaseController):
     
     def index(self):
         '''functional and mako method'''
-        c.user = meta.Session.query(User).filter_by(username="kusinwolf").first()
+        c.user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
         
         pre_sort = {}
         c.tasks = []
