@@ -20,9 +20,15 @@
 </%def>
 
 <%def name="footer()">
-    Site Map
+    Local Site Map
     <BR />
     % for page in g.sitemap:
       ${h.link_to(page[0], h.url_for(action=page[1], id=None))} |
-  % endfor
+    % endfor
+    <BR />
+    Global Site Map
+    <BR />
+    % for page in g.externallinks:
+      ${h.link_to(page[0], page[1])} |
+    % endfor
 </%def>
