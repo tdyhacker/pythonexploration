@@ -7,7 +7,9 @@ from pylons.controllers.util import abort, redirect_to
 
 from iman.lib.base import BaseController, render
 from iman.model import meta
-from iman.model.tables import *
+
+# Database tables
+from iman.model.question_tables import Question, Response
 
 log = logging.getLogger(__name__)
 
