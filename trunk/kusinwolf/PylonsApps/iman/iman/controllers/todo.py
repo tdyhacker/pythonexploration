@@ -7,7 +7,9 @@ from pylons.controllers.util import abort, redirect_to
 
 from iman.lib.base import BaseController, render
 from iman.model import meta
-from iman.model.todo_tables import *
+
+# Database tables
+from iman.model.todo_tables import Task, Priority, Category
 
 log = logging.getLogger(__name__)
 
@@ -26,19 +28,51 @@ class TodoController(BaseController):
     
     def index(self):
         '''functional and mako method'''
-        c.user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
+        user = meta.Session.query(User).filter_by(uid=session['identity'].uid).first()
+        
+        # Start with hash tables, will be replaced with lists of tuples
+        c.priorities = {}
+        c.categories = {}
+        
+        # Create Priority Grouping
+        for group in meta.Session.query(Priority).all():
+            c.priorities[group.id] = group._menu_repr_()
+        c.priorities = c.priorities.items()
+        c.priorities.sort()
+        
+        # Create Category Grouping
+        for group in meta.Session.query(Category).all():
+            c.categories[group.id] = group._menu_repr_()
+        c.categories = c.categories.items()
+        c.categories.sort()
         
         pre_sort = {}
         c.tasks = []
-        for task in  meta.Session.query(Task).filter_by(user=c.user).all():
+        for task in meta.Session.query(Task).filter_by(user=user).all():
             if pre_sort.get(task.priority.severity):
                 pre_sort[task.priority.severity].append(task)
             else:
                 pre_sort[task.priority.severity] = [task,]
         
-        for item in pre_sort.keys():
-            c.tasks.extend(pre_sort[item])
-            
-        c.priorties = meta.Session.query(Priority).all()
-        c.categories = meta.Session.query(Category).all()
+        # Order by severity
+        for group in pre_sort.keys():
+            c.tasks.extend(pre_sort[group])
+        
         return render('/todo/index.mako')
+    
+    def task_delete(self, id):
+        '''functional method'''
+        if id: # if the method is called directly, then ignore the deletion
+            meta.Session.delete(meta.Session.query(Task).filter_by(id=id).first()) # Filter for the object and pend it for deletion
+            meta.Session.commit() # Delete the task from the database now.
+        
+        return redirect_to(controller="todo", action="index", id=None)
+
+    def task_create(self):
+        '''functional method'''
+        
+        meta.Session.begin()
+        meta.Session.save(Task(task=str(request.POST.get("task")), priority=meta.Session.query(Priority).filter_by(id=int(request.POST.get("priority"))).first(), category=meta.Session.query(Category).filter_by(id=int(request.POST.get("category"))).first(), user_id=session['identity'].uid))
+        meta.Session.commit()
+        
+        return redirect_to(controller="todo", action="index", id=None)

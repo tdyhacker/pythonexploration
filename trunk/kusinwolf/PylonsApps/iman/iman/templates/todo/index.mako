@@ -4,10 +4,13 @@
 </%def>
 
 Add a task<br />
-${h.form("/blog/question_insert", method="post")}
-    ${h.textarea(name="question", content="", cols=60, rows=1, wrap="hard")}<br />
-    Quick Response<br />
-    ${h.textarea(name="response", content="", cols=60, rows=25)}<br />
+${h.form("/todo/task_create", method="post")}
+    ${h.textarea(name="task", rows=1, cols=80, content="")}
+    <br />
+    Priority ${h.select("priority", None, c.priorities)}
+    <br />
+    Category ${h.select("category", None, c.categories)}
+    <br />
     ${h.submit("Add", "Add")}<br />
 ${h.end_form()}
 
@@ -19,7 +22,13 @@ ${h.end_form()}
     </tr>
     <tr>
         <td valign='top'>
-            ${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.personal_questions])}
+        % for task in c.tasks:
+            ${h.form("/todo/task_delete", id=task.id), method="post")}
+                ${h.submit("X", "X")}
+                ${task.task}
+            ${h.end_form()}
+            <br />
+        % endfor
         </td>
     </tr>
 </table>

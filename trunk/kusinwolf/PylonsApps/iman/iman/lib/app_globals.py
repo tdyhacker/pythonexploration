@@ -20,3 +20,4 @@ class Globals(object):
         self.externallinks = [("Question Blog", url_for(controller="blog", action="index", id=None)),
                               ("Todo List", url_for(controller="todo", action="index", id=None)),
                               ]
+        self.in_ban = False

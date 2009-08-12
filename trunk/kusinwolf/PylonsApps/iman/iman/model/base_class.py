@@ -1,45 +1,7 @@
 #!/usr/bin/env python
-from sqlalchemy import Column, Table, ForeignKey
-from sqlalchemy.types import Text, Integer, String, TIMESTAMP, Boolean
-from sqlalchemy.orm import mapper, relation
 from datetime import datetime
 from re import compile
 from crypt import crypt
-
-from webhelpers.html import tags
-from iman.model import meta
-
-users_table = Table("users", meta.metadata,
-    Column("uid", Integer, primary_key=True),
-    Column("username", Text),
-    Column("firstname", Text),
-    Column("lastname", Text),
-    Column("password", Text),
-    Column("pass_key", String(2)),
-    Column("group_uid", Integer),
-    Column("created", TIMESTAMP(), default = datetime.now()),
-    )
-
-questions_table = Table("questions", meta.metadata,
-    Column("id", Integer, primary_key=True),
-    Column("question", Text),
-    Column("user_id", Integer, ForeignKey("users.uid")),
-    Column("created", TIMESTAMP(), default = datetime.now()),
-    Column("modified", TIMESTAMP(), default = datetime.now()),
-    )
-
-r_to_q_xref_table = Table("responses_to_question_xref", meta.metadata,
-    Column("question_id", Integer, ForeignKey("questions.id")),
-    Column("response_id", Integer, ForeignKey("responses.id")),
-    )
-
-responses_table = Table("responses", meta.metadata,
-    Column("id", Integer, primary_key=True),
-    Column("response", Text),
-    Column("user_id", Integer, ForeignKey("users.uid")),
-    Column("created", TIMESTAMP(), default = datetime.now()),
-    Column("modified", TIMESTAMP(), default = datetime.now()),
-    )
 
 class Attribute(object):
     """Default class for all and any type of attribute for any object in an xml definition"""
@@ -126,47 +88,3 @@ class Attribute(object):
     
     def __repr__(self):
         return "<General Attribute Node with (%d) lists and (%d) attributes>" % (len([item for item in self.__dict__.keys() if (type(self.__dict__[item]) == list) or (type(self.__dict__[item]) == tuple)]), (len(self.__dict__.keys()) - len([item for item in self.__dict__.keys() if (type(self.__dict__[item]) == list) or (type(self.__dict__[item]) == tuple)])))
-
-class Question(Attribute):
-    def __repr__(self):
-        return "Question: %(question)s" % self.__dict__
-
-class Response(Attribute):
-    def __repr__(self):
-        return "Response to %(question)s" % self.__dict__
-
-class User(Attribute):
-    def __repr__(self):
-        return "User: %(firstname)s '%(username)s' %(lastname)s" % self.__dict__
-    
-    def getByID(self, id):
-        return meta.Session.query(User).filter_by(uid=id).first()
-    
-    def isUnique(self, username):
-        return meta.Session.query(User).filter_by(username=username.lower()).first() is None
-    
-    def authenticate(self, username, password):
-        ''' Authenticates the username and password with the database '''
-        user = meta.Session.query(User).filter_by(username=username).first()
-        if user and user.password == crypt(password, user.pass_key):
-            return user
-        else:
-            return None
-    
-    def validatePassword(self, password):
-        print self.password, "'%s'" % password, crypt(str(password), str(self.created.second)), self.created.second
-        if str(self.password) == crypt(str(password), str(self.pass_key)):
-            return True
-        else:
-            return False
-    
-    def changePassword(self, new_password):
-        self.password = crypt(new_password, str(self.pass_key))
-    
-mapper(User, users_table)
-mapper(Question, questions_table, properties={'user' : relation(User, backref="questions")})
-mapper(Response, responses_table, properties={'question' : relation(Question, secondary=r_to_q_xref_table, backref="responses"),
-                                              'user' : relation(User, backref="responses")})
-
-
-
