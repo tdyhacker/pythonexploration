@@ -10,6 +10,7 @@ from iman.model import meta
 
 # Database tables
 from iman.model.todo_tables import Task, Priority, Category
+from iman.model.account_tables import User
 
 log = logging.getLogger(__name__)
 
