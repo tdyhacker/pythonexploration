@@ -30,7 +30,7 @@ class AccountController(BaseController):
             if not g.in_ban:
                 g.in_ban = True
                 return redirect_to(controller="account", action="banned")
-        else:
+        elif is_banned != None:
             meta.Session.delete(is_banned)
             meta.Session.commit() # Remove the ban because it is no longer valid
     

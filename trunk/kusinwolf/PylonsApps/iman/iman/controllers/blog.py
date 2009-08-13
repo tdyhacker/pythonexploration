@@ -10,6 +10,7 @@ from iman.model import meta
 
 # Database tables
 from iman.model.question_tables import Question, Response
+from iman.model.account_tables import User
 
 log = logging.getLogger(__name__)
 
