@@ -21,3 +21,4 @@ class Globals(object):
                               ("Todo List", url_for(controller="todo", action="index", id=None)),
                               ]
         self.in_ban = False
+        self.site_prefix = ""
