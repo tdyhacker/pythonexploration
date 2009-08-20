@@ -23,7 +23,7 @@ ${h.end_form()}
     <tr>
         <td valign='top'>
         % for task in c.tasks:
-            ${h.form("/todo/task_delete", id=task.id), method="post")}
+            ${h.form("/todo/task_delete", id=task.id, method="post")}
                 ${h.submit("X", "X")}
                 ${task.task}
             ${h.end_form()}
