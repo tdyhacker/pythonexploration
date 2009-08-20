@@ -16,9 +16,10 @@ class Globals(object):
         'app_globals' variable
 
         """
-        self.sitemap = [('Homepage', 'index'), ('Change Password', 'change_password'), ('Sign Out', 'signout'),]
-        self.externallinks = [("Question Blog", url_for(controller="blog", action="index", id=None)),
-                              ("Todo List", url_for(controller="todo", action="index", id=None)),
-                              ]
         self.in_ban = False
         self.site_prefix = ""
+        
+        self.sitemap = [('Homepage', 'index'), ('Change Password', 'change_password'), ('Sign Out', 'signout'),]
+        self.externallinks = [("Question Blog", url_for(controller="%sblog" % self.site_prefix, action="index", id=None)),
+                              ("Todo List", url_for(controller="%stodo" % self.site_prefix, action="index", id=None)),
+                              ]

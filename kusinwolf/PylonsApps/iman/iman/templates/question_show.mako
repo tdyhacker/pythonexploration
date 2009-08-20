@@ -15,7 +15,7 @@ ${h.end_form()}
 
 <h4>Responses</h4><br />
 % for response in c.question.responses:
-  <p>${response.response}<br /><h6>posted by ${response.user.username} on ${response.created} and last modified ${response.modified}</h6></p>
+  <p>${c.convert_text(response.response)}<br /><h6>posted by ${response.user.username} on ${response.created} and last modified ${response.modified}</h6></p>
 % endfor
 
 <br />
