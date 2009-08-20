@@ -2,7 +2,7 @@ import logging
 from re import compile
 from datetime import datetime
 
-from pylons import request, response, session, tmpl_context as c
+from pylons import request, response, session, tmpl_context as c, app_globals as g
 from pylons.controllers.util import abort, redirect_to
 
 from iman.lib.base import BaseController, render
@@ -19,13 +19,13 @@ class TodoController(BaseController):
     def __before__(self):
         # Basic Home grown security layer
         if session.get("identity") is None:
-            return redirect_to(controller="account", action="login")
+            return redirect_to(controller="%saccount" % g.site_prefix, action="login")
     
     def signout(self):
-        return redirect_to(controller="account", action="logout")
+        return redirect_to(controller="%saccount" % g.site_prefix, action="logout")
     
     def change_password(self):
-        return redirect_to(controller="account", action="change_password")
+        return redirect_to(controller="%saccount" % g.site_prefix, action="change_password")
     
     def index(self):
         '''functional and mako method'''
@@ -67,7 +67,7 @@ class TodoController(BaseController):
             meta.Session.delete(meta.Session.query(Task).filter_by(id=id).first()) # Filter for the object and pend it for deletion
             meta.Session.commit() # Delete the task from the database now.
         
-        return redirect_to(controller="todo", action="index", id=None)
+        return redirect_to(controller="%stodo" % g.site_prefix, action="index", id=None)
 
     def task_create(self):
         '''functional method'''
@@ -76,4 +76,4 @@ class TodoController(BaseController):
         meta.Session.save(Task(task=str(request.POST.get("task")), priority=meta.Session.query(Priority).filter_by(id=int(request.POST.get("priority"))).first(), category=meta.Session.query(Category).filter_by(id=int(request.POST.get("category"))).first(), user_id=session['identity'].uid))
         meta.Session.commit()
         
-        return redirect_to(controller="todo", action="index", id=None)
+        return redirect_to(controller="%stodo" % g.site_prefix, action="index", id=None)

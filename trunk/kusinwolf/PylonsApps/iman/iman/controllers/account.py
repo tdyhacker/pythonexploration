@@ -24,12 +24,12 @@ class AccountController(BaseController):
             c.message = "Your IP '%s' has been banned permanently<br /><h1>Have a nice day ^_^</h1>" % is_banned.ip
             if not g.in_ban:
                 g.in_ban = True
-                return redirect_to(controller="account", action="banned")
+                return redirect_to(controller="%saccount" % g.site_prefix, action="banned")
         elif is_banned and is_banned.until > datetime.now():
             c.message = "Your IP '%s' has been banned from here until %s, which is another %s hours and %s minutes away<br />If this is not you, please contact the administrator and clear your name" % (is_banned.ip, is_banned.until, (is_banned.until - datetime.now()).seconds / 3600, (is_banned.until - datetime.now()).seconds % 3600 / 60)
             if not g.in_ban:
                 g.in_ban = True
-                return redirect_to(controller="account", action="banned")
+                return redirect_to(controller="%saccount" % g.site_prefix, action="banned")
         elif is_banned != None:
             meta.Session.delete(is_banned)
             meta.Session.commit() # Remove the ban because it is no longer valid
@@ -53,7 +53,7 @@ class AccountController(BaseController):
                     # Update current indentity in session
                     session['indentity'] = User().getByID(user.uid) # Reload the object from the database to save and refresh everything
                     session.save()
-                    return redirect_to(controller="blog", action="index") # Send them back to where they came from
+                    return redirect_to(controller="%sblog" % g.site_prefix, action="index") # Send them back to where they came from
                 else:
                     c.failed = "The current password does not match what is currently being used"
                     return render('/change_password.mako')
@@ -80,11 +80,11 @@ class AccountController(BaseController):
             else:
                 session['identity'] = user
                 session.save()
-                return redirect_to(controller="blog", action="index") # Send them back to where they came from
+                return redirect_to(controller="%sblog" % g.site_prefix, action="index") # Send them back to where they came from
         else:
             return render('/login.mako')
     
     def logout(self):
         del session['identity']
         session.save()
-        return "You have successfully logged out<br /><br />%s" % link_to("Log back in?", url_for(controller="account", action="login"))
+        return "You have successfully logged out<br /><br />%s" % link_to("Log back in?", url_for(controller="%saccount" % g.site_prefix, action="login"))
