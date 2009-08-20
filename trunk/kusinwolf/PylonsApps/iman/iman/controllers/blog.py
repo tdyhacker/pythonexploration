@@ -19,13 +19,13 @@ class BlogController(BaseController):
     def __before__(self):
         # Basic Home grown security layer
         if session.get("identity") is None:
-            return redirect_to(controller="%saccount" % g.site_prefix, action="login")
+            return redirect_to(controller="account", action="login")
 
     def signout(self):
-        return redirect_to(controller="%saccount" % g.site_prefix, action="logout")
+        return redirect_to(controller="account", action="logout")
     
     def change_password(self):
-        return redirect_to(controller="%saccount" % g.site_prefix, action="change_password")
+        return redirect_to(controller="account", action="change_password")
     
     def convertHTMLTags(self, text):
         '''functional method'''
@@ -98,7 +98,7 @@ class BlogController(BaseController):
         
         meta.Session.commit()
         
-        return redirect_to(controller="%sblog" % g.site_prefix, action="question_show", id=int(request.params['id']))
+        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
     
     def comment_insert(self):
         '''functional method'''
