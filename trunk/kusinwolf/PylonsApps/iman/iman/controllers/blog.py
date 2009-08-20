@@ -53,6 +53,7 @@ class BlogController(BaseController):
     def question_show(self, id):
         '''mako method'''
         c.question = meta.Session.query(Question).filter_by(id=id).first()
+        c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
         
         c.convert_text = self.convertHTMLTags
         

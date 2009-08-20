@@ -41,7 +41,7 @@ class Question(Attribute):
 
 class Response(Attribute):
     def __repr__(self):
-        return "Response to %(question)s" % self.__dict__
+        return "Response" % self.__dict__
 
 mapper(Question, questions_table, properties={'user' : relation(User, backref="questions")})
 mapper(Response, responses_table, properties={'question' : relation(Question, secondary=r_to_q_xref_table, backref="responses"),
