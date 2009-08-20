@@ -4,7 +4,7 @@
 </%def>
 
 Add a question here<br />
-${h.form("/blog/question_insert", method="post")}
+${h.form("%sblog/question_insert" % g.site_prefix, method="post")}
     ${h.textarea(name="question", content="", cols=60, rows=1, wrap="hard")}<br />
     Quick Response<br />
     ${h.textarea(name="response", content="", cols=60, rows=25)}<br />
