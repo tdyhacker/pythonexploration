@@ -61,10 +61,10 @@ class TodoController(BaseController):
         
         return render('/todo/index.mako')
     
-    def task_delete(self, id):
+    def task_delete(self):
         '''functional method'''
         if id: # if the method is called directly, then ignore the deletion
-            meta.Session.delete(meta.Session.query(Task).filter_by(id=id).first()) # Filter for the object and pend it for deletion
+            meta.Session.delete(meta.Session.query(Task).filter_by( id = int(request.POST.get("id")) ).first()) # Filter for the object and pend it for deletion
             meta.Session.commit() # Delete the task from the database now.
         
         return redirect_to(controller="todo", action="index", id=None)

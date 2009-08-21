@@ -23,11 +23,11 @@ ${h.end_form()}
     <tr>
         <td valign='top'>
         % for task in c.tasks:
-            ${h.form("%stodo/task_delete" % g.site_prefix, id=task.id, method="post")}
+            ${h.form("%stodo/task_delete" % g.site_prefix, method="post")}
+                ${h.hidden(name="id", value=task.id, checked='checked')}
                 ${h.submit("X", "X")}
                 ${task.priority} - ${task.category} - ${task.task}
             ${h.end_form()}
-            <br />
         % endfor
         </td>
     </tr>
