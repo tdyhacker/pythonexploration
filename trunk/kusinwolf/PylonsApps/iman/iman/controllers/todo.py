@@ -50,10 +50,10 @@ class TodoController(BaseController):
         pre_sort = {}
         c.tasks = []
         for task in meta.Session.query(Task).filter_by(user=user).all():
-            if pre_sort.get(task.priority.severity):
-                pre_sort[task.priority.severity].append(task)
+            if pre_sort.get(task.priority[0].severity):
+                pre_sort[task.priority[0].severity].append(task)
             else:
-                pre_sort[task.priority.severity] = [task,]
+                pre_sort[task.priority[0].severity] = [task,]
         
         # Order by severity
         for group in pre_sort.keys():
@@ -73,7 +73,13 @@ class TodoController(BaseController):
         '''functional method'''
         
         meta.Session.begin()
-        meta.Session.save(Task(task=str(request.POST.get("task")), priority=meta.Session.query(Priority).filter_by(id=int(request.POST.get("priority"))).first(), category=meta.Session.query(Category).filter_by(id=int(request.POST.get("category"))).first(), user_id=session['identity'].uid))
+        meta.Session.save(
+            Task(task = str(request.POST.get("task")),
+                 user_id = int(session['identity'].uid),
+                 user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).first(),
+                 priority = [meta.Session.query(Priority).filter_by(id=int(request.POST.get("priority"))).first(),],
+                 category = [meta.Session.query(Category).filter_by(id=int(request.POST.get("category"))).first(),])
+            )
         meta.Session.commit()
         
         return redirect_to(controller="todo", action="index", id=None)

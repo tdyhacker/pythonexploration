@@ -7,7 +7,7 @@ class Attribute(object):
     """Default class for all and any type of attribute for any object in an xml definition"""
     def __init__(self, **kws):
         for word in kws:
-            self.addAttribute(word, kws[word], is_object=(type(kws[word]) not in [int, str, list, tuple, bool, dict]))
+            self.addAttribute(word, kws[word], is_object=(type(kws[word]) not in [int, str, bool]))
             
         self._parent_ = self.__class__
     
