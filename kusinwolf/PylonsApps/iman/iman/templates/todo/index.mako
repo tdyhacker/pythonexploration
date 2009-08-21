@@ -4,7 +4,7 @@
 </%def>
 
 Add a task<br />
-${h.form("/todo/task_create", method="post")}
+${h.form("%stodo/task_create" % g.site_prefix, method="post")}
     ${h.textarea(name="task", rows=1, cols=80, content="")}
     <br />
     Priority ${h.select("priority", None, c.priorities)}
@@ -23,9 +23,9 @@ ${h.end_form()}
     <tr>
         <td valign='top'>
         % for task in c.tasks:
-            ${h.form("/todo/task_delete", id=task.id, method="post")}
+            ${h.form("%stodo/task_delete" % g.site_prefix, id=task.id, method="post")}
                 ${h.submit("X", "X")}
-                ${task.task}
+                ${task.priority} - ${task.category} - ${task.task}
             ${h.end_form()}
             <br />
         % endfor
