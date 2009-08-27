@@ -92,6 +92,7 @@ class Canvas(wx.Panel):
         # self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         # Always break mouse events apart from each other, other wise you will formulate a bottleneck that prevents any inner application updates from happening
         self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeft)
+        self.Bind(wx.EVT_LEFT_UP, self.OnMouseLeft)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRight)
         self.Bind(wx.EVT_MOTION, self.OnMouseMotion)
         
@@ -118,6 +119,14 @@ class Canvas(wx.Panel):
         
         if type(event) == wx.MouseEvent:
             x, y = event.GetPosition()
+            
+            if self.color != None and self.tool == TOOL_PLACE_COLOR:
+                mdc.SetBrush(wx.Brush(self.color))
+                mdc.DrawRectangle(x - 15, y - 15, 30, 30)
+            elif self.holdingBox != None:
+                mdc.SetBrush(wx.Brush(self.holdingBox.color))
+                mdc.DrawRectangle(x - 15, y - 15, self.holdingBox.size_x, self.holdingBox.size_y)
+            
             mdc.SetPen(wx.Pen(wx.Colour(100, 100, 100), 1, wx.DOT))
             mdc.CrossHair(x, y)
             
@@ -182,6 +191,21 @@ class Canvas(wx.Panel):
     def OnMouseMotion(self, event):
         self.DoDrawing(event)
     
+    def getBelowMouse(self, event, pop=False):
+        item = None
+        pos = 0
+        m_pos = event.GetPosition()
+        
+        while item == None and pos < len(self.list_of_paintables):
+            if self.list_of_paintables[-pos - 1].IsPointWithinBoundaries(m_pos.x, m_pos.y):
+                if pop:
+                    item = self.list_of_paintables.pop(-pos - 1)
+                else:
+                    item = self.list_of_paintables[-pos - 1]
+            pos += 1 # Add in a positive notion but traverse the stack in reverse providing a top down selection in the GUI
+        
+        return item
+    
     def OnMouseLeft(self, event):
         m_pos = event.GetPosition()
         
@@ -189,39 +213,30 @@ class Canvas(wx.Panel):
             if self.tool == TOOL_PLACE_COLOR:
                 self.list_of_paintables.append(ColorBox(m_pos.x, m_pos.y, self.color, size = (30, 30)))
                 self.DoDrawing(event)
-            if self.tool == TOOL_CHANGE_COLOR:
+            elif self.tool == TOOL_CHANGE_COLOR:
                 # For all boxes within range down the stack, swap their color out
                 for group in self.list_of_paintables:
                     if group.IsPointWithinBoundaries(m_pos.x, m_pos.y):
                         group.color = "#" + self.randomRGBHexString()
                 self.DoDrawing(event)
-            elif self.tool == TOOL_MOVE_BOX:
-                if self.holdingBox == None:
-                    pos = 0
-                    while self.holdingBox == None and pos < len(self.list_of_paintables):
-                        if self.list_of_paintables[-pos - 1].IsPointWithinBoundaries(m_pos.x, m_pos.y):
-                            self.holdingBox = self.list_of_paintables.pop(-pos - 1)
-                        pos += 1 # Add in a positive notion but traverse the stack in reverse providing a top down selection in the GUI
-                    
-                    self.DoDrawing(event)
-                else: # Place the box
-                    self.holdingBox.SetPosition(m_pos.x, m_pos.y)
-                    self.list_of_paintables.append(self.holdingBox)
-                    self.holdingBox = None
-                    self.DoDrawing(event)
             elif self.tool == TOOL_ALTER_BOX:
-                pos = 0
                 self.holdingBox = None
                 self.parent.RightPannel.ResetFields()
-                while self.holdingBox == None and pos < len(self.list_of_paintables):
-                    if self.list_of_paintables[-pos - 1].IsPointWithinBoundaries(m_pos.x, m_pos.y):
-                        self.holdingBox = self.list_of_paintables[-pos - 1]
-                    pos += 1 # Add in a positive notion but traverse the stack in reverse providing a top down selection in the GUI
+                
+                self.holdingBox = self.getBelowMouse(event, pop=False)
                 
                 if self.holdingBox:
                     self.parent.RightPannel.color_text_box.SetValue(self.holdingBox.color)
                     self.parent.RightPannel.size_x_text_box.SetValue(str(self.holdingBox.size_x))
                     self.parent.RightPannel.size_y_text_box.SetValue(str(self.holdingBox.size_y))
+        elif self.tool == None and event.LeftDown() and event.LeftIsDown():
+            self.holdingBox = self.getBelowMouse(event, True)
+            self.DoDrawing(event)
+        elif self.tool == None and event.LeftUp():
+            self.holdingBox.SetPosition(m_pos.x, m_pos.y)
+            self.list_of_paintables.append(self.holdingBox)
+            self.holdingBox = None
+            self.DoDrawing(event)
     
     def OnMouseRight(self, event):
         self.tool = None
