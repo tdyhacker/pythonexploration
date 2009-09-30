@@ -18,6 +18,7 @@ questions_table = Table("questions", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("question", Text),
     Column("user_id", INT, ForeignKey("users.uid")),
+    Column("public", Boolean, default = False),
     Column("created", DateTime(), default = datetime.now),
     Column("modified", TIMESTAMP()),
     )

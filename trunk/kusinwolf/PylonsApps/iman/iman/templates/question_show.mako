@@ -3,7 +3,24 @@
     <title>Question</title>
 </%def>
 
-<h3>Question - ${c.question.question}<h3>
+<h3>Question - ${c.question.question}
+% if c.question.public:
+
+    ${h.form("%sblog/question_private" % g.site_prefix, method="post")}
+        ${h.hidden(name='id', value=c.question.id, checked='checked')}
+        ${h.submit("Make Private", "Make Private", id=None)}
+    ${h.end_form()}
+
+% else:
+
+    ${h.form("%sblog/question_public" % g.site_prefix, method="post")}
+        ${h.hidden(name='id', value=c.question.id, checked='checked')}
+        ${h.submit("Make Public", "Make Public", id=None)}
+    ${h.end_form()}
+    
+% endif
+</h3>
+
 <h5>Writen by ${c.question.user.username} on ${c.question.created} and modified on ${c.question.modified}</h5><br />
 
 Add a response here<br />
