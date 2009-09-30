@@ -3,6 +3,8 @@
 from webhelpers.html.tags import link_to
 from routes import url_for
 
+from datetime import timedelta
+
 class Globals(object):
 
     """Globals acts as a container for objects available throughout the
@@ -23,3 +25,4 @@ class Globals(object):
         self.externallinks = [("Question Blog", url_for(controller="%sblog" % self.site_prefix, action="index", id=None)),
                               ("Todo List", url_for(controller="%stodo" % self.site_prefix, action="index", id=None)),
                               ]
+        self.central_time = timedelta(hours = 5)
