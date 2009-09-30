@@ -5,6 +5,7 @@ from datetime import datetime
 from pylons import request, response, session, tmpl_context as c, app_globals as g
 from pylons.controllers.util import abort, redirect_to
 
+from iman.config import environment
 from iman.lib.base import BaseController, render
 from iman.model import meta
 
@@ -18,8 +19,11 @@ class BlogController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        if session.get("identity") is None:
+        if not environment.config.debug and session.get("identity") is None:
             return redirect_to(controller="account", action="login")
+        else:
+            session['identity'] = meta.Session.query(User).first()
+            session.save()
 
     def signout(self):
         return redirect_to(controller="account", action="logout")
@@ -45,7 +49,7 @@ class BlogController(BaseController):
         user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
         if meta.Session.query(Question).all() != []:
             c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
-            c.not_personal_questions = meta.Session.query(Question).filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
+            c.not_personal_questions = meta.Session.query(Question).filter("public").filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
         else:
             c.personal_questions = c.not_personal_questions = []
         return render('/index.mako')
@@ -82,6 +86,22 @@ class BlogController(BaseController):
         meta.Session.commit()
         
         return redirect_to(controller="blog", action="index")
+    
+    def question_public(self):
+        '''functional method to show a question to the public'''
+        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
+        q.public = True
+        meta.Session.commit()
+        
+        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
+    
+    def question_private(self):
+        '''functional method to hide a question from the public'''
+        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
+        q.public = False
+        meta.Session.commit()
+        
+        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
     
     def response_insert(self):
         '''functional method'''

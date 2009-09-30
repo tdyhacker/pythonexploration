@@ -18,8 +18,11 @@ class TodoController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        if session.get("identity") is None:
+        if not environment.config.debug and session.get("identity") is None:
             return redirect_to(controller="account", action="login")
+        else:
+            session['identity'] = meta.Session.query(User).first()
+            session.save()
     
     def signout(self):
         return redirect_to(controller="account", action="logout")
