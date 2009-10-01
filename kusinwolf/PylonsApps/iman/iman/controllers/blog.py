@@ -19,11 +19,11 @@ class BlogController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        if not environment.config.debug and session.get("identity") is None:
-            return redirect_to(controller="account", action="login")
-        else:
+        if environment.config.debug:
             session['identity'] = meta.Session.query(User).first()
             session.save()
+        elif session.get("identity") is None:
+            return redirect_to(controller="account", action="login")
 
     def signout(self):
         return redirect_to(controller="account", action="logout")
@@ -47,6 +47,7 @@ class BlogController(BaseController):
     def index(self):
         '''functional and mako method'''
         user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
+        c.lastlogin = user.lastlogin
         if meta.Session.query(Question).all() != []:
             c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
             c.not_personal_questions = meta.Session.query(Question).filter("public").filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own

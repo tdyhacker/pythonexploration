@@ -8,6 +8,7 @@ from routes import url_for
 from pylons import request, response, session, tmpl_context as c, app_globals as g
 from pylons.controllers.util import abort, redirect_to
 
+from iman.config import environment
 from iman.lib.base import BaseController, render
 from iman.model import meta
 
@@ -19,25 +20,24 @@ log = logging.getLogger(__name__)
 
 class AccountController(BaseController):
     def __before__(self):
-        if not environment.config.debug:
-            is_banned = meta.Session.query(IP).filter_by(ip=str(request.environ.get("REMOTE_ADDR"))).first()
-            if is_banned and (is_banned.until == "0000-00-00 00:00:00" or is_banned.until == None):
-                c.message = "Your IP '%s' has been banned permanently<br /><h1>Have a nice day ^_^</h1>" % is_banned.ip
-                if not g.in_ban:
-                    g.in_ban = True
-                    return redirect_to(controller="account", action="banned")
-            elif is_banned and is_banned.until > datetime.now():
-                c.message = "Your IP '%s' has been banned from here until %s, which is another %s hours and %s minutes away<br />If this is not you, please contact the administrator and clear your name" % (is_banned.ip, is_banned.until, (is_banned.until - datetime.now()).seconds / 3600, (is_banned.until - datetime.now()).seconds % 3600 / 60)
-                if not g.in_ban:
-                    g.in_ban = True
-                    return redirect_to(controller="account", action="banned")
-            elif is_banned != None:
-                meta.Session.delete(is_banned)
-                meta.Session.commit() # Remove the ban because it is no longer valid
-        else:
+        if environment.config.debug:
             session['identity'] = meta.Session.query(User).first()
             session.save()
-            return redirect_to(controller="blog", action="index")
+        
+        is_banned = meta.Session.query(IP).filter_by(ip=str(request.environ.get("REMOTE_ADDR"))).first()
+        if is_banned and (is_banned.until == "0000-00-00 00:00:00" or is_banned.until == None):
+            c.message = "Your IP '%s' has been banned permanently<br /><h1>Have a nice day ^_^</h1>" % is_banned.ip
+            if not g.in_ban:
+                g.in_ban = True
+                return redirect_to(controller="account", action="banned")
+        elif is_banned and is_banned.until > datetime.now():
+            c.message = "Your IP '%s' has been banned from here until %s, which is another %s hours and %s minutes away<br />If this is not you, please contact the administrator and clear your name" % (is_banned.ip, is_banned.until, (is_banned.until - datetime.now()).seconds / 3600, (is_banned.until - datetime.now()).seconds % 3600 / 60)
+            if not g.in_ban:
+                g.in_ban = True
+                return redirect_to(controller="account", action="banned")
+        elif is_banned != None:
+            meta.Session.delete(is_banned)
+            meta.Session.commit() # Remove the ban because it is no longer valid
     
     def banned(self):
         # Calling this method creates a redundent __before__ call that losses it's message content
@@ -90,6 +90,11 @@ class AccountController(BaseController):
             return render('/login.mako')
     
     def logout(self):
-        del session['identity']
-        session.save()
+        if session.get('identity'):
+            # Update last logged in
+            session['identity'].lastlogin = datetime.now()
+            meta.Session.commit()
+            del session['identity']
+            session.save()
+            
         return "You have successfully logged out<br /><br />%s" % link_to("Log back in?", url_for(controller="account", action="login"))

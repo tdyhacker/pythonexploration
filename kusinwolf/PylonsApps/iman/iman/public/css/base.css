@@ -1,0 +1,38 @@
+/* Generic Selectors */
+/*
+body {
+    background-image: url("../imgs/Aperture Science.png");
+    background-position: center;
+    background-color: #000000;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
+    font-family: "Times New Roman";
+    font-size: 14px;
+    text-align: center;
+    color: #FFFFFF;
+}
+*/
+
+.new_post_on_public_question {
+    background-color: #3333FF;
+}
+
+.public_question {
+    background-color: #9999FF;
+}
+
+/* A single tab usful for pushing text a small distance */
+.tab {
+    padding-left: 44px;
+}
+
+.tableheader {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #D5BFFF;
+}
+
+
+
