@@ -5,6 +5,7 @@ from datetime import datetime
 from pylons import request, response, session, tmpl_context as c, app_globals as g
 from pylons.controllers.util import abort, redirect_to
 
+from iman.config import environment
 from iman.lib.base import BaseController, render
 from iman.model import meta
 
@@ -18,11 +19,11 @@ class TodoController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        if not environment.config.debug and session.get("identity") is None:
-            return redirect_to(controller="account", action="login")
-        else:
+        if environment.config.debug:
             session['identity'] = meta.Session.query(User).first()
             session.save()
+        elif session.get("identity") is None:
+            return redirect_to(controller="account", action="login")
     
     def signout(self):
         return redirect_to(controller="account", action="logout")

@@ -20,6 +20,7 @@ users_table = Table("users", meta.metadata,
     Column("password", Text),
     Column("pass_key", String(2)),
     Column("group_uid", INT),
+    Column("lastlogin", DateTime()),
     Column("created", DateTime(), default = datetime.now),
     Column("modified", TIMESTAMP()),
     )
