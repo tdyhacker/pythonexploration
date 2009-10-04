@@ -1,0 +1,3 @@
+include invenimus/config/deployment.ini_tmpl
+recursive-include invenimus/public *
+recursive-include invenimus/templates *
