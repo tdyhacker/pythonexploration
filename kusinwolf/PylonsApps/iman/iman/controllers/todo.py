@@ -33,11 +33,50 @@ class TodoController(BaseController):
     
     def index(self):
         '''functional and mako method'''
+        # Gather all needed information ahead of time
         user = meta.Session.query(User).filter_by(uid=session['identity'].uid).first()
+        order_type = session.get("order", None) # This will tell us what order the user wants to see their tasks in
+        sort_type = request.POST.get("sort_type", None) # Sorting Column
+        sort_direction = request.POST.get("sort_direction", None) # Sorting Column Ascending/Decending
+        history_order = request.POST.get("history_order", None) # Date Ascending/Decending
+        
+        if order_type:
+            # Options are:
+            # Priority, Ascending (a-z), Decending (z-a)
+            # Category, Ascending (a-z), Decending (z-a)
+            # Sub Orders are
+            # Date Ascending (a-z), Decending (z-a)
+            order_type = str(order_type).split(",")
+            sort_type = sort_type or order_type[0]
+            sort_direction = sort_direction or order_type[1]
+            history_order = history_order or order_type[2]
+        else:
+            sort_type = sort_type or "Priority"
+            sort_direction = sort_direction or "Ascending"
+            history_order = history_order or "Ascending"
+        
+        # convert unicode
+        sort_type = str(sort_type)
+        sort_direction = str(sort_direction)
+        history_order = str(history_order)
+        
+        # Send the order criteria to the session for memory
+        order_type = sort_type + "," + sort_direction + "," + history_order
+        session["order"] = order_type
+        session.save()
+        
+        # Sort Types and Directions
+        c.sort_type = ["Priority", "Category"]
+        c.direction = ["Ascending", "Decending"]
         
         # Start with hash tables, will be replaced with lists of tuples
         c.priorities = {}
         c.categories = {}
+        
+        # Breaker category
+        pre_sort = {}
+        # What is printed out on the page
+        c.tasks = []
         
         # Create Priority Grouping
         for group in meta.Session.query(Priority).all():
@@ -51,16 +90,34 @@ class TodoController(BaseController):
         c.categories = c.categories.items()
         c.categories.sort()
         
-        pre_sort = {}
-        c.tasks = []
-        for task in meta.Session.query(Task).filter_by(user=user).all():
-            if pre_sort.get(task.priority[0].severity):
-                pre_sort[task.priority[0].severity].append(task)
-            else:
-                pre_sort[task.priority[0].severity] = [task,]
+        if sort_type == "Priority":
+            # Breaks all tasks out by priority
+            for task in meta.Session.query(Task).filter_by(user=user).all():
+                if pre_sort.get(task.priority[0].severity):
+                    pre_sort[task.priority[0].severity].append(task)
+                else:
+                    pre_sort[task.priority[0].severity] = [task,]
+            
+        elif sort_type == "Category":
+            # Breaks all tasks out by category
+            for task in meta.Session.query(Task).filter_by(user=user).all():
+                if pre_sort.get(task.category[0].name):
+                    pre_sort[task.category[0].name].append(task)
+                else:
+                    pre_sort[task.category[0].name] = [task,]
         
-        # Order by severity
-        for group in pre_sort.keys():
+        # Order by Ascending
+        keys = pre_sort.keys()
+        
+        if sort_direction == "Decending":
+            # Order by Decending
+            keys.reverse()
+        
+        for group in keys:
+            if history_order == "Decending": # Newest to oldest
+                pre_sort[group].reverse()
+            
+            # Else sort by Ascending Date / Oldest to Newest
             c.tasks.extend(pre_sort[group])
         
         return render('/todo/index.mako')

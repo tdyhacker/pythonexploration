@@ -10,8 +10,30 @@ ${h.form("%stodo/task_create" % g.site_prefix, method="post")}
     Priority ${h.select("priority", None, c.priorities)}
     <br />
     Category ${h.select("category", None, c.categories)}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    ${h.submit("Add Task", "Add Task")}<br />
+${h.end_form()}
+
+<br />
+
+${h.form("%stodo/index" % g.site_prefix, method="post")}
+    Sort Type ${h.select("sort_type", None, c.sort_type)}
+    &nbsp;&nbsp;
+    Direction ${h.select("sort_direction", None, c.direction)}
+    &nbsp;&nbsp;
+    History ${h.select("history_order", None, c.direction)}
+    &nbsp;&nbsp;
+    ${h.submit("Resort", "Resort")}<br />
     <br />
-    ${h.submit("Add", "Add")}<br />
 ${h.end_form()}
 
 <table cellpadding='3'>
