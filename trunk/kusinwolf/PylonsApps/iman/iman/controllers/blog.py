@@ -47,6 +47,7 @@ class BlogController(BaseController):
     def index(self):
         '''functional and mako method'''
         user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
+        c.user_id = user.uid
         c.lastlogin = user.lastlogin
         if meta.Session.query(Question).all() != []:
             c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
@@ -60,11 +61,14 @@ class BlogController(BaseController):
         c.question = meta.Session.query(Question).filter_by(id=id).first()
         c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
         
-        c.convert_text = self.convertHTMLTags
+        c.convert_text = []
+        for response in c.question:
+            c.convert_text.append(self.convertHTMLTags(response))
         
         if c.question.user == None:
             # Temp name to help with error checking and debugging on the dev side
             c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
+        
         return render('/question_show.mako')
     
     def question_insert(self):
