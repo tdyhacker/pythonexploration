@@ -43,17 +43,12 @@ ${h.end_form()}
         </td>
         <td valign='top'>
             % for question in c.not_personal_questions:
-                % if question.public:
-                    % if c.lastlogin == None or c.lastlogin < question.responses[-1].created:
-                        <div class="new_post_on_public_question">
-                    % else:
-                        <div class="public_question">
-                    % endif
+                % if c.lastlogin == None or c.lastlogin < question.responses[-1].created:
+                    <div class="new_post_on_public_question">
+                % else:
+                    <div class="public_question">
                 % endif
-                ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))} (${len(question.responses)})<br />
-                % if question.public:
-                    </div>
-                % endif
+                ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))} (${len(question.responses)})<br /></div>
             % endfor
             <!--${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.not_personal_questions])}-->
         </td>
