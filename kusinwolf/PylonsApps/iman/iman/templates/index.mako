@@ -26,7 +26,7 @@ ${h.end_form()}
         <td valign='top'>
             % for question in c.personal_questions:
                 % if question.public:
-                    % if c.lastlogin == None or c.lastlogin < question.responses[-1].created:
+                    % if c.lastlogin == None or (len(question.responses) > 1 and c.lastlogin < question.responses[-1].created):
                         <div class="new_post_on_public_question">
                     % else:
                         <div class="public_question">
@@ -43,7 +43,7 @@ ${h.end_form()}
         </td>
         <td valign='top'>
             % for question in c.not_personal_questions:
-                % if c.lastlogin == None or c.lastlogin < question.responses[-1].created:
+                % if c.lastlogin == None or (len(question.responses) > 1 and c.lastlogin < question.responses[-1].created):
                     <div class="new_post_on_public_question">
                 % else:
                     <div class="public_question">
