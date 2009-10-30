@@ -41,6 +41,7 @@ class BlogController(BaseController):
         text = text.replace("[b]","<b>").replace("[/b]","</b>").replace("[B]","<b>").replace("[/B]","</b>")
         text = text.replace("[i]","<i>").replace("[/i]","</i>").replace("[I]","<i>").replace("[/I]","</i>")
         text = text.replace("[u]","<u>").replace("[/u]","</u>").replace("[U]","<u>").replace("[/U]","</u>")
+        text = text.replace("[url]", "<a href=\"").replace("[/url]", "\">link</a>").replace("[URL]", "<a href=\"").replace("[/URL]", "\">link</a>")
         
         return text
     
@@ -63,9 +64,7 @@ class BlogController(BaseController):
         c.question = meta.Session.query(Question).filter_by(id=id).first()
         c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
         
-        c.convert_text = []
-        for response in c.question:
-            c.convert_text.append(self.convertHTMLTags(response))
+        c.convert_text = self.convertHTMLTags
         
         if c.question.user == None:
             # Temp name to help with error checking and debugging on the dev side

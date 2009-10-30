@@ -29,7 +29,7 @@ ${h.form("%sblog/response_insert" % g.site_prefix, method="post")}
 ${h.end_form()}
 
 <h4>Responses</h4><br />
-% for response in c.convert_text:
+% for response in c.question.responses:
   <p>${c.convert_text(response.response)}<br /><h6>posted by ${response.user.username} on ${response.created - g.central_time} and last modified ${response.modified - g.central_time}</h6></p>
 % endfor
 
