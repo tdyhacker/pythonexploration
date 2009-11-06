@@ -4,7 +4,7 @@
 </%def>
 
 Add a question here<br />
-${h.form("%sblog/question_insert" % g.site_prefix, method="post")}
+${h.form(h.url_for(action="question_insert"), method="post")}
     ${h.textarea(name="question", content="", cols=60, rows=1, wrap="hard")}<br />
     Quick Response<br />
     ${h.textarea(name="response", content="", cols=60, rows=25)}<br />
@@ -26,7 +26,7 @@ ${h.end_form()}
         <td valign='top'>
             % for question in c.personal_questions:
                 % if question.public:
-                    % if c.lastlogin == None or (len(question.responses) > 1 and c.lastlogin < question.responses[-1].created):
+                    % if c.lastlogin == None or c.user.getViewedRecently(question):
                         <div class="new_post_on_public_question">
                     % else:
                         <div class="public_question">
@@ -43,7 +43,7 @@ ${h.end_form()}
         </td>
         <td valign='top'>
             % for question in c.not_personal_questions:
-                % if c.lastlogin == None or (len(question.responses) > 1 and c.lastlogin < question.responses[-1].created):
+                % if c.lastlogin == None or c.user.getViewedRecently(question):
                     <div class="new_post_on_public_question">
                 % else:
                     <div class="public_question">

@@ -70,11 +70,6 @@ class Priority(Attribute):
         return "%(name)s" % self.__dict__
 
 
-mapper(Task, tasks_table, properties={'category' : relation(Category, secondary=t_to_c_xref_table, backref="tasks"),
-                                      'priority' : relation(Priority, secondary=t_to_p_xref_table, backref="tasks"),
-                                      'user' : relation(User, backref="tasks")})
-mapper(Priority, priorities_table)
-mapper(Category, categories_table)
 
 
 

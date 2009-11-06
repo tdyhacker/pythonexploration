@@ -4,7 +4,7 @@
 </%def>
 <%def name="footer()"></%def>
 
-${h.form("/account/change_password", method="post")}
+${h.form(h.url_for(action="change_password"), method="post")}
     Current Password<br />
     ${h.password(name="current_password", value="")}<br />
     New Password<br />

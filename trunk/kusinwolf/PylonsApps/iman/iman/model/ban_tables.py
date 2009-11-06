@@ -23,7 +23,6 @@ class IP(Attribute):
     def __repr__(self):
         return "IP: %(ip)s banned until %(until)s" % self.__dict__
 
-mapper(IP, ips_table)
 
 
 

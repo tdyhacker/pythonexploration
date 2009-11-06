@@ -12,6 +12,7 @@ from base_class import Attribute
 from webhelpers.html import tags
 from iman.model import meta
 
+
 users_table = Table("users", meta.metadata,
     Column("uid", INT, primary_key=True),
     Column("username", Text),
@@ -52,5 +53,16 @@ class User(Attribute):
     
     def changePassword(self, new_password):
         self.password = crypt(new_password, str(self.pass_key))
+    
+    def getViewedRecently(self, question):
+        '''
+            If the User has viewed the question before but not since the last post
+        '''
+        for view in self.last_viewed:
+            if view.question_id == question.id:
+                for loc in range(1, len(question.responses) + 1):
+                    if response.user_id != self.uid:
+                        return (view.last_viewed <= question.responses[-1 * loc].created)
         
-mapper(User, users_table)
+        # else
+        return False # Never viewed or Owner of all responses

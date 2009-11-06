@@ -4,7 +4,7 @@
 </%def>
 <%def name="footer()"></%def>
 
-${h.form("%saccount/login" % g.site_prefix, method="post")}
+${h.form(h.url_for(action="login"), method="post")}
     Username<br />
     ${h.text(name="login_name", value="")}<br />
     Password<br />

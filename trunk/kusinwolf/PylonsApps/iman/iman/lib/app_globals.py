@@ -19,10 +19,9 @@ class Globals(object):
 
         """
         self.in_ban = False
-        self.site_prefix = ""
         
         self.sitemap = [('Homepage', 'index'), ('Change Password', 'change_password'), ('Sign Out', 'signout'),]
-        self.externallinks = [("Question Blog", url_for(controller="%sblog" % self.site_prefix, action="index", id=None)),
-                              ("Todo List", url_for(controller="%stodo" % self.site_prefix, action="index", id=None)),
+        self.externallinks = [("Question Blog", url_for(controller="blog", action="index", id=None)),
+                              ("Todo List", url_for(controller="todo", action="index", id=None)),
                               ]
         self.central_time = timedelta(hours = 5)
