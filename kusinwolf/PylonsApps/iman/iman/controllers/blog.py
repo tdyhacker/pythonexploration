@@ -10,7 +10,7 @@ from iman.lib.base import BaseController, render
 from iman.model import meta
 
 # Database tables
-from iman.model.question_tables import Question, Response
+from iman.model.question_tables import Question, Response, View
 from iman.model.account_tables import User
 
 log = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class BlogController(BaseController):
         '''functional and mako method'''
         user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
         c.user_id = user.uid
-        c.lastlogin = user.lastlogin
+        c.user = user
         
         c.personal_questions = c.not_personal_questions = []
         
@@ -69,6 +69,16 @@ class BlogController(BaseController):
         if c.question.user == None:
             # Temp name to help with error checking and debugging on the dev side
             c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
+        
+        user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).first()
+        last_viewed = meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).first()
+        
+        if last_viewed == None or last_viewed == []:
+            last_viewed = View(user_id = user.uid, question_id = c.question.id, last_viewed = datetime.now())
+            meta.Session.save(last_viewed)
+        
+        last_viewed.last_viewed = datetime.now()
+        meta.Session.commit()
         
         return render('/question_show.mako')
     

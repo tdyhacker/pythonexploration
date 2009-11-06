@@ -26,12 +26,12 @@ class AccountController(BaseController):
         
         is_banned = meta.Session.query(IP).filter_by(ip=str(request.environ.get("REMOTE_ADDR"))).first()
         if is_banned and (is_banned.until == "0000-00-00 00:00:00" or is_banned.until == None):
-            c.message = "Your IP '%s' has been banned permanently<br /><h1>Have a nice day ^_^</h1>" % is_banned.ip
+            c.message = "Your IP '%s' has been banned permanently<br />If this is not you, please contact the administrator and clear your name otherwise<br /><h1>Have a nice day ^_^</h1>" % is_banned.ip
             if not g.in_ban:
                 g.in_ban = True
                 return redirect_to(controller="account", action="banned")
         elif is_banned and is_banned.until > datetime.now():
-            c.message = "Your IP '%s' has been banned from here until %s, which is another %s hours and %s minutes away<br />If this is not you, please contact the administrator and clear your name" % (is_banned.ip, is_banned.until, (is_banned.until - datetime.now()).seconds / 3600, (is_banned.until - datetime.now()).seconds % 3600 / 60)
+            c.message = "Your IP '%s' has been banned until %s, which is another %s hours and %s minutes away<br />If this is not you, please contact the administrator and clear your name" % (is_banned.ip, is_banned.until, (is_banned.until - datetime.now()).seconds / 3600, (is_banned.until - datetime.now()).seconds % 3600 / 60)
             if not g.in_ban:
                 g.in_ban = True
                 return redirect_to(controller="account", action="banned")

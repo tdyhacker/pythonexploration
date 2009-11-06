@@ -6,12 +6,12 @@
 <h3>Question - ${c.question.question}
 % if c.question.user_id == c.user_id:
     % if c.question.public:
-        ${h.form("%sblog/question_private" % g.site_prefix, method="post")}
+        ${h.form(h.url_for(action="question_private"), method="post")}
             ${h.hidden(name='id', value=c.question.id, checked='checked')}
             ${h.submit("Make Private", "Make Private", id=None)}
         ${h.end_form()}
     % else:
-        ${h.form("%sblog/question_public" % g.site_prefix, method="post")}
+        ${h.form(h.url_for(action="question_public"), method="post")}
             ${h.hidden(name='id', value=c.question.id, checked='checked')}
             ${h.submit("Make Public", "Make Public", id=None)}
         ${h.end_form()}
@@ -22,7 +22,7 @@
 <h5>Writen by ${c.question.user.username} on ${c.question.created} and modified on ${c.question.modified}</h5><br />
 
 Add a response here<br />
-${h.form("%sblog/response_insert" % g.site_prefix, method="post")}
+${h.form(h.url_for(action="response_insert"), method="post")}
     ${h.hidden(name='id', value=c.question.id, checked='checked')}
     ${h.textarea(name="response", content="", cols=60, rows=25)}<br />
     ${h.submit("Add", "Add", id=None)}<br />

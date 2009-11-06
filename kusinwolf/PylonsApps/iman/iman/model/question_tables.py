@@ -8,7 +8,6 @@ from crypt import crypt
 
 # Any tables that do not need regeneration
 from base_class import Attribute
-from account_tables import User
 
 from webhelpers.html import tags
 from iman.model import meta
@@ -36,6 +35,13 @@ responses_table = Table("responses", meta.metadata,
     Column("modified", TIMESTAMP()),
     )
 
+u_v_of_q_xref_table = Table("user_views_of_question_xref", meta.metadata,
+    Column("question_id", Integer, ForeignKey("questions.id"), primary_key=True),
+    Column("user_id", Integer, ForeignKey("users.uid"), primary_key=True),
+    Column("last_viewed", DateTime(), default = datetime.now),
+    )
+
+
 class Question(Attribute):
     def __repr__(self):
         return "Question: %(question)s" % self.__dict__
@@ -44,9 +50,9 @@ class Response(Attribute):
     def __repr__(self):
         return "Response" % self.__dict__
 
-mapper(Question, questions_table, properties={'user' : relation(User, backref="questions")})
-mapper(Response, responses_table, properties={'question' : relation(Question, secondary=r_to_q_xref_table, backref="responses"),
-                                              'user' : relation(User, backref="responses")})
+class View(Attribute):
+    def __repr__(self):
+        return "last viewed %(last_viewed)s" % self.__dict__
 
 
 
