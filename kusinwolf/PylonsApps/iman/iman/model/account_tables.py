@@ -61,7 +61,7 @@ class User(Attribute):
         for view in self.last_viewed:
             if view.question_id == question.id:
                 for loc in range(1, len(question.responses) + 1):
-                    if response.user_id != self.uid:
+                    if question.responses[-1 * loc].user_id != self.uid:
                         return (view.last_viewed <= question.responses[-1 * loc].created)
         
         # else
