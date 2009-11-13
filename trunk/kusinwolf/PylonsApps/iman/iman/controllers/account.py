@@ -92,7 +92,8 @@ class AccountController(BaseController):
     def logout(self):
         if session.get('identity'):
             # Update last logged in
-            session['identity'].lastlogin = datetime.now()
+            user = meta.Session.query(User).filter_by(username=session['identity'].username).filter_by(password=session['identity'].password).first()
+            user.lastlogin = datetime.now()
             meta.Session.commit()
             del session['identity']
             session.save()

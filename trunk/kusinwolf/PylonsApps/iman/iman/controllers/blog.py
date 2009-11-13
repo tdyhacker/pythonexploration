@@ -66,6 +66,8 @@ class BlogController(BaseController):
         
         c.convert_text = self.convertHTMLTags
         
+        c.user_id = session['identity'].uid
+        
         if c.question.user == None:
             # Temp name to help with error checking and debugging on the dev side
             c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
