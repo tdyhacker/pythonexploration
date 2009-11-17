@@ -19,11 +19,15 @@ class BlogController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        if environment.config.debug:
-            session['identity'] = meta.Session.query(User).first()
-            session.save()
-        elif session.get("identity") is None:
-            return redirect_to(controller="account", action="login")
+        #if environment.config.debug:
+        #    session['identity'] = meta.Session.query(User).first()
+        #    session.save()
+        #elif session.get("identity") is None:
+        #    return redirect_to(controller="account", action="login")
+        return self.test()
+    
+    def test(self):
+        return str(request.url)
 
     def signout(self):
         return redirect_to(controller="account", action="logout")
@@ -103,7 +107,7 @@ class BlogController(BaseController):
         
         meta.Session.commit()
         
-        return redirect_to(controller="blog", action="index")
+        return redirect_to(action="index")
     
     def question_public(self):
         '''functional method to show a question to the public'''
@@ -111,7 +115,7 @@ class BlogController(BaseController):
         q.public = True
         meta.Session.commit()
         
-        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
+        return redirect_to(action="question_show", id=int(request.params['id']))
     
     def question_private(self):
         '''functional method to hide a question from the public'''
@@ -119,7 +123,7 @@ class BlogController(BaseController):
         q.public = False
         meta.Session.commit()
         
-        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
+        return redirect_to(action="question_show", id=int(request.params['id']))
     
     def response_insert(self):
         '''functional method'''
@@ -137,7 +141,7 @@ class BlogController(BaseController):
         
         meta.Session.commit()
         
-        return redirect_to(controller="blog", action="question_show", id=int(request.params['id']))
+        return redirect_to(action="question_show", id=int(request.params['id']))
     
     def comment_insert(self):
         '''functional method'''

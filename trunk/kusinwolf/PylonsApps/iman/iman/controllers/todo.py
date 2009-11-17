@@ -128,7 +128,7 @@ class TodoController(BaseController):
             meta.Session.delete(meta.Session.query(Task).filter_by( id = int(request.POST.get("id")) ).first()) # Filter for the object and pend it for deletion
             meta.Session.commit() # Delete the task from the database now.
         
-        return redirect_to(controller="todo", action="index", id=None)
+        return redirect_to(action="index")
 
     def task_create(self):
         '''functional method'''
@@ -143,4 +143,4 @@ class TodoController(BaseController):
             )
         meta.Session.commit()
         
-        return redirect_to(controller="todo", action="index", id=None)
+        return redirect_to(action="index")

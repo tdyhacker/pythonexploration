@@ -8,6 +8,8 @@ from routes import url_for
 from pylons import request, response, session, tmpl_context as c, app_globals as g
 from pylons.controllers.util import abort, redirect_to
 
+from routes import url_for
+
 from iman.config import environment
 from iman.lib.base import BaseController, render
 from iman.model import meta
@@ -58,7 +60,7 @@ class AccountController(BaseController):
                     # Update current indentity in session
                     session['indentity'] = User().getByID(user.uid) # Reload the object from the database to save and refresh everything
                     session.save()
-                    return redirect_to(controller="blog", action="index") # Send them back to where they came from
+                    return redirect_to(url_for(controller="blog", action="index")) # Send them back to where they came from
                 else:
                     c.failed = "The current password does not match what is currently being used"
                     return render('/change_password.mako')
@@ -85,7 +87,7 @@ class AccountController(BaseController):
             else:
                 session['identity'] = user
                 session.save()
-                return redirect_to(controller="blog", action="index") # Send them back to where they came from
+                return redirect_to(url_for(controller="blog", action="index")) # Send them back to where they came from
         else:
             return render('/login.mako')
     
