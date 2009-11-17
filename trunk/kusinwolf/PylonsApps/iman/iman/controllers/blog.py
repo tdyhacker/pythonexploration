@@ -62,11 +62,14 @@ class BlogController(BaseController):
     def question_show(self, id):
         '''mako method'''
         c.question = meta.Session.query(Question).filter_by(id=id).first()
+        c.user_id = session['identity'].uid
+        
+        if not c.question.public and c.question.user_id != c.user_id:
+            return redirect_to(action="index") # They do not have permission to view this page and should not be allowed to "hack" into it
+        
         c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
         
         c.convert_text = self.convertHTMLTags
-        
-        c.user_id = session['identity'].uid
         
         if c.question.user == None:
             # Temp name to help with error checking and debugging on the dev side
