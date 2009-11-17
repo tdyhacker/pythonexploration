@@ -29,6 +29,6 @@
     Global Site Map
     <BR />
     % for page in g.externallinks:
-      ${h.link_to(page[0], page[1])} |
+      ${h.link_to(page[0], h.url_for(controller=page[1].pop("controller", None), action=page[1].pop("action", None), id=page[1].pop("id", None)))} |
     % endfor
 </%def>
