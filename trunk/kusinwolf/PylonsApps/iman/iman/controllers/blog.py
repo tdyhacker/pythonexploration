@@ -19,15 +19,11 @@ class BlogController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        #if environment.config.debug:
-        #    session['identity'] = meta.Session.query(User).first()
-        #    session.save()
-        #elif session.get("identity") is None:
-        #    return redirect_to(controller="account", action="login")
-        return self.test()
-    
-    def test(self):
-        return str(request.url)
+        if environment.config.debug:
+            session['identity'] = meta.Session.query(User).first()
+            session.save()
+        elif session.get("identity") is None:
+            return redirect_to(controller="account", action="login")
 
     def signout(self):
         return redirect_to(controller="account", action="logout")
