@@ -4,7 +4,7 @@ import os
 from mako.lookup import TemplateLookup
 from pylons import config
 from pylons.error import handle_mako_error
-from sqlalchemy import engine_from_config
+#from sqlalchemy import engine_from_config
 
 import invenimus.lib.app_globals as app_globals
 import invenimus.lib.helpers
@@ -38,8 +38,8 @@ def load_environment(global_conf, app_conf):
         imports=['from webhelpers.html import escape'])
 
     # Setup the SQLAlchemy database engine
-    engine = engine_from_config(config, 'sqlalchemy.')
-    init_model(engine)
+    #engine = engine_from_config(config, 'sqlalchemy.')
+    #init_model(engine)
 
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
