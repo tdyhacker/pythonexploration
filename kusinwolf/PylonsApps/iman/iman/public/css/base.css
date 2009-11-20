@@ -35,5 +35,13 @@ body {
     color: #D5BFFF;
 }
 
+.post_info {
+    font-weight: bold;
+    font-size: 10px;
+    padding-left: 22px;
+}
 
-
+.comment {
+    padding-left: 44px;
+    background-color: #DDDDDD;
+}

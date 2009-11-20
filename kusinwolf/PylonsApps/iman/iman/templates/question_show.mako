@@ -19,7 +19,7 @@
 %endif
 </h3>
 
-<h5>Writen by ${c.question.user.username} on ${c.question.created} and modified on ${c.question.modified}</h5><br />
+<h5>Writen by <%context.write(c.question.user.username)%> on ${c.question.created} and modified on ${c.question.modified}</h5><br />
 
 Add a response here<br />
 ${h.form(h.url_for(action="response_insert"), method="post")}
@@ -28,10 +28,25 @@ ${h.form(h.url_for(action="response_insert"), method="post")}
     ${h.submit("Add", "Add", id=None)}<br />
 ${h.end_form()}
 
-<h4>Responses</h4><br />
+<h4>Responses</h4>
 % for response in c.question.responses:
-  <p>${c.convert_text(response.response)}<br /><h6>posted by ${response.user.username} on ${response.created - g.central_time} and last modified ${response.modified - g.central_time}</h6></p>
+    <%context.write(c.convert_text(response.response))%>
+    <div class="post_info">
+        posted by ${response.user.username} on ${response.created - g.central_time} and last modified ${response.modified - g.central_time}
+    </div>
+    % for comment in response.comments:
+        <div class="comment">
+            <%context.write(c.convert_text(comment.comment))%>
+            <div class="post_info">
+                posted by ${comment.user.username} on ${comment.created - g.central_time} and last modified ${comment.modified - g.central_time}
+            </div>
+        <br />
+        </div>
+    % endfor
+    <br />
 % endfor
+
+
 
 <br />
 <br />
