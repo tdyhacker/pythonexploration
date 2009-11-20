@@ -10,7 +10,7 @@ from iman.lib.base import BaseController, render
 from iman.model import meta
 
 # Database tables
-from iman.model.question_tables import Question, Response, View
+from iman.model.question_tables import Question, Response, View, Comment
 from iman.model.account_tables import User
 
 log = logging.getLogger(__name__)
@@ -56,55 +56,119 @@ class BlogController(BaseController):
             c.not_personal_questions = meta.Session.query(Question).filter("public").filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
         
         return render('/index.mako')
+
+    def comment_edit(self, id):
+        '''mako method'''
+        if meta.Session.query(Comment).filter_by(id=id).count():
+            c.comment = meta.Session.query(Comment).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if c.comment.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to edit this question and should not be allowed to "hack" into it
+            
+            return render('/comment_edit.mako')
+        else:
+            return redirect_to(action="index")
     
+    def comment_update(self, id):
+        '''functional method'''
+        if meta.Session.query(Comment).filter_by(id=id).count():
+            meta.Session.begin()
+            c.comment = meta.Session.query(Comment).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if c.comment.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to update this question and should not be allowed to "hack" into it
+            
+            c.comment.comment = request.POST.get("comment", '')
+            meta.Session.commit()
+            
+            return redirect_to(action="question_show", id=c.comment.response[0].question[0].id)
+        else:
+            return redirect_to(action="index")
+
     def comment_insert(self):
         '''functional method'''
         meta.Session.begin()
         
         user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
         
-        r = meta.Session.query(Response).filter_by(id = int(request.POST.get('r_id'))).one()
+        response = meta.Session.query(Response).filter_by(id = int(request.POST.get('id'))).one()
+        comment = Comment(comment = str(request.params['comment'].replace("'", "\'")), user = user)
         
-        if r.response == '' or r.response == None:
-            del r
+        if comment.comment == '' or comment.comment == None:
+            del comment
         else:
-            q.responses.append(r)
+            response.comments.append(comment)
         
         meta.Session.commit()
         
-        return redirect_to(action="question_show", id=int(request.params['id']))
+        return redirect_to(action="question_show", id=response.question[0].id)
+    
+    def question_edit(self, id):
+        '''mako method'''
+        if meta.Session.query(Question).filter_by(id=id).count():
+            c.question = meta.Session.query(Question).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if c.question.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to edit this question and should not be allowed to "hack" into it
+            
+            return render('/question_edit.mako')
+        else:
+            return redirect_to(action="index")
+    
+    def question_update(self, id):
+        '''functional method'''
+        if meta.Session.query(Question).filter_by(id=id).count():
+            meta.Session.begin()
+            c.question = meta.Session.query(Question).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if c.question.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to update this question and should not be allowed to "hack" into it
+            
+            c.question.question = request.POST.get("question", '')
+            meta.Session.commit()
+            
+            return redirect_to(action="question_show", id=c.question.id)
+        else:
+            return redirect_to(action="index")
     
     def question_show(self, id):
         '''mako method'''
-        c.question = meta.Session.query(Question).filter_by(id=id).one()
-        c.user_id = session['identity'].uid
-        last_viewed = None
+        if meta.Session.query(Question).filter_by(id=id).count():
+            c.question = meta.Session.query(Question).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            last_viewed = None
+            
+            if not c.question.public and c.question.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to view this page and should not be allowed to "hack" into it
+            
+            c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
+            
+            c.convert_text = self.convertHTMLTags
+            
+            if c.question.user == None:
+                # Temp name to help with error checking and debugging on the dev side
+                c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
+            
+            user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).one()
+            
+            if meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).count():
+                # If there already existing an entry for the last time the user viewed the question
+                last_viewed = meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).one()
+            else: # last_viewed == None:
+                # If there does not already existing an entry
+                last_viewed = View(user_id = user.uid, question_id = c.question.id, last_viewed = datetime.now())
+                meta.Session.save(last_viewed)
+            
+            last_viewed.last_viewed = datetime.now()
+            meta.Session.commit()
         
-        if not c.question.public and c.question.user_id != c.user_id:
-            return redirect_to(action="index") # They do not have permission to view this page and should not be allowed to "hack" into it
-        
-        c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
-        
-        c.convert_text = self.convertHTMLTags
-        
-        if c.question.user == None:
-            # Temp name to help with error checking and debugging on the dev side
-            c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
-        
-        user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).one()
-        
-        if meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).count():
-            # If there already existing an entry for the last time the user viewed the question
-            last_viewed = meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).one()
-        else: # last_viewed == None:
-            # If there does not already existing an entry
-            last_viewed = View(user_id = user.uid, question_id = c.question.id, last_viewed = datetime.now())
-            meta.Session.save(last_viewed)
-        
-        last_viewed.last_viewed = datetime.now()
-        meta.Session.commit()
-        
-        return render('/question_show.mako')
+            return render('/question_show.mako')
+        else:
+            return redirect_to(action="index")
     
     def question_insert(self):
         '''functional method'''
@@ -142,7 +206,37 @@ class BlogController(BaseController):
         meta.Session.commit()
         
         return redirect_to(action="question_show", id=int(request.params['id']))
+
+    def response_edit(self, id):
+        '''mako method'''
+        if meta.Session.query(Response).filter_by(id=id).count():
+            c.response = meta.Session.query(Response).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if c.response.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to edit this question and should not be allowed to "hack" into it
+            
+            return render('/response_edit.mako')
+        else:
+            return redirect_to(action="index")
     
+    def response_update(self, id):
+        '''functional method'''
+        if meta.Session.query(Response).filter_by(id=id).count():
+            meta.Session.begin()
+            c.response = meta.Session.query(Response).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if c.response.user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to update this question and should not be allowed to "hack" into it
+            
+            c.response.response = request.POST.get("response", '')
+            meta.Session.commit()
+            
+            return redirect_to(action="question_show", id=c.response.question[0].id)
+        else:
+            return redirect_to(action="index")
+
     def response_insert(self):
         '''functional method'''
         meta.Session.begin()
@@ -161,6 +255,18 @@ class BlogController(BaseController):
         
         return redirect_to(action="question_show", id=int(request.params['id']))
     
-    def comment_insert(self):
-        '''functional method'''
-        pass
+    def response_show(self, id):
+        if meta.Session.query(Response).filter_by(id=id).count():
+            c.response = meta.Session.query(Response).filter_by(id=id).one()
+            c.user_id = session['identity'].uid
+            
+            if not c.response.question[0].public and c.response.question[0].user_id != c.user_id:
+                return redirect_to(action="index") # They do not have permission to view this page and should not be allowed to "hack" into it
+            
+            c.response.comments.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
+            
+            c.convert_text = self.convertHTMLTags
+            
+            return render('/comment_on_response.mako')
+        else:
+            return redirect_to(action="index") # The response does not exist
