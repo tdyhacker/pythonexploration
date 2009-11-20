@@ -27,6 +27,8 @@ mapper(Question, questions_table, properties={'user' : relation(User, backref="q
 mapper(Response, responses_table, properties={'question' : relation(Question, secondary=r_to_q_xref_table, backref="responses"),
                                               'user' : relation(User, backref="responses")})
 mapper(View, u_v_of_q_xref_table, properties={'question': relation(Question)})
+mapper(Comment, comments_table, properties={'response' : relation(Response, secondary=c_to_r_xref_table, backref="comments"),
+                                            'user' : relation(User, backref="comments")})
 
 # User tables
 mapper(User, users_table, properties={'last_viewed': relation(View)})

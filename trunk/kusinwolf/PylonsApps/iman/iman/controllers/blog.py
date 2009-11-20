@@ -19,10 +19,7 @@ class BlogController(BaseController):
     
     def __before__(self):
         # Basic Home grown security layer
-        if environment.config.debug:
-            session['identity'] = meta.Session.query(User).first()
-            session.save()
-        elif session.get("identity") is None:
+        if session.get("identity") is None:
             return redirect_to(controller="account", action="login")
 
     def signout(self):
@@ -34,6 +31,7 @@ class BlogController(BaseController):
     def convertHTMLTags(self, text):
         '''functional method'''
         
+        text = text.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;") # This prevents any HTML code from being inserted into the page causing unwanted execution within a question
         text = text.replace("[br]","<br />").replace("[BR]","<br />")
         text = text.replace("[p]","<p>").replace("[/p]","</p>").replace("[P]","<p>").replace("[/P]","</p>")
         text = text.replace("[ul]","<ul>").replace("[/ul]","</ul>").replace("[UL]","<ul>").replace("[/UL]","</ul>")
@@ -41,13 +39,13 @@ class BlogController(BaseController):
         text = text.replace("[b]","<b>").replace("[/b]","</b>").replace("[B]","<b>").replace("[/B]","</b>")
         text = text.replace("[i]","<i>").replace("[/i]","</i>").replace("[I]","<i>").replace("[/I]","</i>")
         text = text.replace("[u]","<u>").replace("[/u]","</u>").replace("[U]","<u>").replace("[/U]","</u>")
-        text = text.replace("[url]", "<a href=\"").replace("[/url]", "\">link</a>").replace("[URL]", "<a href=\"").replace("[/URL]", "\">link</a>")
+        text = text.replace("[url]", "<a href=\"").replace("[/url]", "\" target=\"_blank\">link</a>").replace("[URL]", "<a href=\"").replace("[/URL]", "\">link</a>")
         
         return text
     
     def index(self):
         '''functional and mako method'''
-        user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
         c.user_id = user.uid
         c.user = user
         
@@ -59,10 +57,28 @@ class BlogController(BaseController):
         
         return render('/index.mako')
     
+    def comment_insert(self):
+        '''functional method'''
+        meta.Session.begin()
+        
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
+        
+        r = meta.Session.query(Response).filter_by(id = int(request.POST.get('r_id'))).one()
+        
+        if r.response == '' or r.response == None:
+            del r
+        else:
+            q.responses.append(r)
+        
+        meta.Session.commit()
+        
+        return redirect_to(action="question_show", id=int(request.params['id']))
+    
     def question_show(self, id):
         '''mako method'''
-        c.question = meta.Session.query(Question).filter_by(id=id).first()
+        c.question = meta.Session.query(Question).filter_by(id=id).one()
         c.user_id = session['identity'].uid
+        last_viewed = None
         
         if not c.question.public and c.question.user_id != c.user_id:
             return redirect_to(action="index") # They do not have permission to view this page and should not be allowed to "hack" into it
@@ -75,10 +91,13 @@ class BlogController(BaseController):
             # Temp name to help with error checking and debugging on the dev side
             c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
         
-        user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).first()
-        last_viewed = meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).first()
+        user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).one()
         
-        if last_viewed == None or last_viewed == []:
+        if meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).count():
+            # If there already existing an entry for the last time the user viewed the question
+            last_viewed = meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).one()
+        else: # last_viewed == None:
+            # If there does not already existing an entry
             last_viewed = View(user_id = user.uid, question_id = c.question.id, last_viewed = datetime.now())
             meta.Session.save(last_viewed)
         
@@ -91,7 +110,7 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
         
         question = Question(question = str(request.params['question'].replace("'", "\'")))
         response = Response(response = str(request.params['response'].replace("'", "\'")))
@@ -110,7 +129,7 @@ class BlogController(BaseController):
     
     def question_public(self):
         '''functional method to show a question to the public'''
-        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
+        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).one()
         q.public = True
         meta.Session.commit()
         
@@ -118,7 +137,7 @@ class BlogController(BaseController):
     
     def question_private(self):
         '''functional method to hide a question from the public'''
-        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
+        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).one()
         q.public = False
         meta.Session.commit()
         
@@ -128,9 +147,9 @@ class BlogController(BaseController):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=session['identity'].username).first()
+        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
         
-        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).first()
+        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).one()
         r = Response(response = str(request.params['response'].replace("'", "\'")), user = user)
         
         if r.response == '' or r.response == None:

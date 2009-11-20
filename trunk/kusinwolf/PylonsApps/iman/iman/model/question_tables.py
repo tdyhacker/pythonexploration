@@ -41,6 +41,18 @@ u_v_of_q_xref_table = Table("user_views_of_question_xref", meta.metadata,
     Column("last_viewed", DateTime(), default = datetime.now),
     )
 
+comments_table = Table("comments", meta.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("comment", Text),
+    Column("user_id", INT, ForeignKey("users.uid")),
+    Column("created", DateTime(), default = datetime.now),
+    Column("modified", TIMESTAMP()),
+    )
+
+c_to_r_xref_table = Table("comments_to_response_xref", meta.metadata,
+    Column("comment_id", Integer, ForeignKey("comments.id")),
+    Column("response_id", Integer, ForeignKey("responses.id")),
+    )
 
 class Question(Attribute):
     def __repr__(self):
@@ -53,6 +65,10 @@ class Response(Attribute):
 class View(Attribute):
     def __repr__(self):
         return "last viewed %(last_viewed)s" % self.__dict__
+
+class Comment(Attribute):
+    def __repr__(self):
+        return "Comment" % self.__dict__
 
 
 
