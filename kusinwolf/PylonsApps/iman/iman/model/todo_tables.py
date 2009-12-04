@@ -12,7 +12,7 @@ from base_class import Attribute
 
 from iman.model import meta
 
-tasks_table = Table("task", meta.metadata,
+tasks_table = Table("tasks", meta.metadata,
     Column("id", Integer, primary_key=True),
     Column("task", Text),
     #Column("category", INT, ForeignKey("category.id")),
@@ -21,13 +21,15 @@ tasks_table = Table("task", meta.metadata,
     Column("created", DateTime(), default = datetime.now),
     Column("modified", TIMESTAMP()),
     )
+# Patches from old to new
+# rename table task to tasks;
 
 t_to_p_xref_table = Table("task_to_priority_xref", meta.metadata,
-    Column("task_id", Integer, ForeignKey("task.id")),
-    Column("priority_id", INT, ForeignKey("priority.id")),
+    Column("task_id", Integer, ForeignKey("tasks.id"), primary_key=True),
+    Column("priority_id", INT, ForeignKey("priorities.id"), primary_key=True),
     )
 
-priorities_table = Table("priority", meta.metadata,
+priorities_table = Table("priorities", meta.metadata,
     Column("id", INT, primary_key=True),
     Column("severity", INT, unique=True),
     Column("name", Text),
@@ -35,21 +37,25 @@ priorities_table = Table("priority", meta.metadata,
     Column("created", DateTime(), default = datetime.now),
     Column("modified", TIMESTAMP),
     )
+# Patches from old to new
 # alter table priority add column color CHAR(6) default '000000';
+# rename table priority to priorities;
 
 t_to_c_xref_table = Table("task_to_category_xref", meta.metadata,
-    Column("task_id", Integer, ForeignKey("task.id")),
-    Column("category_id", INT, ForeignKey("category.id")),
+    Column("task_id", Integer, ForeignKey("tasks.id"), primary_key=True),
+    Column("category_id", INT, ForeignKey("categories.id"), primary_key=True),
     )
 
-categories_table = Table("category", meta.metadata,
+categories_table = Table("categories", meta.metadata,
     Column("id", INT, primary_key=True),
     Column("name", Text),
     Column("color", CHAR(6)),
     Column("created", DateTime(), default = datetime.now),
     Column("modified", TIMESTAMP()),
     )
+# Patches from old to new
 # alter table category add column color CHAR(6) default '000000';
+# rename table category to categories;
 
 class Task(Attribute):
     def __repr__(self):

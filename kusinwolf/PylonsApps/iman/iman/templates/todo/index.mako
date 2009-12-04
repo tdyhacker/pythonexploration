@@ -1,6 +1,6 @@
 <%inherit file="../base.mako"/>
 <%def name="head_tags()">
-    <title>Blog Index</title>
+    <title>Todo List</title>
 </%def>
 
 Add a task<br />
