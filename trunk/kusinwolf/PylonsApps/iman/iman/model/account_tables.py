@@ -54,15 +54,18 @@ class User(Attribute):
     def changePassword(self, new_password):
         self.password = crypt(new_password, str(self.pass_key))
     
-    def getViewedRecently(self, question):
+    def wasViewedRecently(self, question):
         '''
             If the User has viewed the question before but not since the last post
         '''
-        for view in self.last_viewed:
-            if view.question_id == question.id:
-                for loc in range(1, len(question.responses) + 1):
-                    if question.responses[-1 * loc].user_id != self.uid:
-                        return (view.last_viewed <= question.responses[-1 * loc].created)
+        for view in self.last_viewed: # Check all the viewed questions
+            if view.question_id == question.id: # See if the Question is in the list
+                for loc in range(1, len(question.responses) + 1): # Reverse order the list of 
+                    if (view.last_viewed <= question.responses[-1 * loc].created): # Does the last_viewing time beat the post time?
+                        return True
+                    for comment in question.responses[-1 * loc].comments: # Check all comments
+                        if (comment.created >= view.last_viewed): # Does the last_viewing time beat the post time?
+                            return True # A new comment was added
         
         # else
-        return False # Never viewed or Owner of all responses
+        return True # Never viewed

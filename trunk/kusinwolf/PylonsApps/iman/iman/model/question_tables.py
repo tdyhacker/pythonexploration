@@ -57,6 +57,13 @@ c_to_r_xref_table = Table("comments_to_response_xref", meta.metadata,
 class Question(Attribute):
     def __repr__(self):
         return "Question: %(question)s" % self.__dict__
+    
+    def getNumberOfComments(self):
+        number_of_comments = 0
+        for response in self.responses:
+            number_of_comments += len(response.comments)
+        
+        return number_of_comments
 
 class Response(Attribute):
     def __repr__(self):
