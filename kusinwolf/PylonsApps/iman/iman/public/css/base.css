@@ -16,6 +16,15 @@ body {
     background-color: #3333FF;
 }
 
+.new_post_on_public_question div,
+.private_question div,
+.public_question div
+{
+    text-align: right;
+}
+
+.private_question {
+}
 .public_question {
     background-color: #9999FF;
 }

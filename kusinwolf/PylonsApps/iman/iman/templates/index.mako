@@ -26,16 +26,20 @@ ${h.end_form()}
         <td valign='top'>
             % for question in c.personal_questions:
                 % if question.public:
-                    % if c.lastlogin == None or c.user.getViewedRecently(question):
+                    % if c.lastlogin == None or not c.user.wasViewedRecently(question):
                         <div class="new_post_on_public_question">
                     % else:
                         <div class="public_question">
                     % endif
+                % else:
+                    <div class="private_question">
                 % endif
-                ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))} (${len(question.responses)})<br />
-                % if question.public:
+                    ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))}
+                    <div>
+                        Responses (${len(question.responses)}) - Comments (${question.getNumberOfComments()})
                     </div>
-                % endif
+                    <br />
+                </div>
             % endfor
             <!--${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.personal_questions])}-->
         </td>
@@ -43,14 +47,18 @@ ${h.end_form()}
         </td>
         <td valign='top'>
             % for question in c.not_personal_questions:
-                % if c.lastlogin == None or c.user.getViewedRecently(question):
+                % if c.lastlogin == None or not c.user.wasViewedRecently(question):
                     <div class="new_post_on_public_question">
                 % else:
                     <div class="public_question">
                 % endif
-                ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))} (${len(question.responses)})<br /></div>
+                ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))}
+                <div>
+                Responses (${len(question.responses)}) - Comments (${question.getNumberOfComments()})
+                </div>
+                <br />
+                </div>
             % endfor
-            <!--${h.ul([h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id)) for question in c.not_personal_questions])}-->
         </td>
     </tr>
 </table>
