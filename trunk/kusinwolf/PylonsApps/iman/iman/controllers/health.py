@@ -13,6 +13,13 @@ from iman.model import meta
 from iman.model.health_tables import Weight, Unit
 from iman.model.account_tables import User
 
+# MatPlotLib
+
+import pylab
+
+from cStringIO import StringIO
+import sys
+
 log = logging.getLogger(__name__)
 
 class HealthController(BaseController):
@@ -28,6 +35,16 @@ class HealthController(BaseController):
     def change_password(self):
         return redirect_to(controller="account", action="change_password")
     
+    def plot(self):
+        # Experimental Code, not in any state for production use
+        fig = pylab.Figure()
+        canvas = pylab.FigureCanvasBase(fig)
+        ax = fig.add_subplot(111)
+        ax.plot(range(0,5), [1,5,7,3,4])
+        
+        fig.savefig( "iman/public/renders/tempfile.png", format='png' )
+        return "../renders/tempfile.png"
+
     def index(self):
         '''functional and mako method'''
         user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
@@ -49,6 +66,7 @@ class HealthController(BaseController):
             c.units = c.units.items()
             c.units.sort()
         
+        c.plot_file = self.plot()
         return render('/health/index.mako')
     
     def weight_delete(self):
