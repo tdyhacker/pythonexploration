@@ -1,6 +1,6 @@
 
 truth_table = {}
-truth_table['order'] = ['P', 'Q', 'R', 'Z', 'W', 'D']
+truth_table['order'] = ['P', 'Q', 'R']
 
 value = True
 
