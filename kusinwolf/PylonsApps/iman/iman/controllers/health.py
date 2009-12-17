@@ -14,11 +14,7 @@ from iman.model.health_tables import Weight, Unit
 from iman.model.account_tables import User
 
 # MatPlotLib
-
 import pylab
-
-from cStringIO import StringIO
-import sys
 
 log = logging.getLogger(__name__)
 
@@ -35,19 +31,37 @@ class HealthController(BaseController):
     def change_password(self):
         return redirect_to(controller="account", action="change_password")
     
+    def getUserFromSession(self):
+        return meta.Session.query(User).filter_by(username=session['identity'].username).one()
+    
     def plot(self):
-        # Experimental Code, not in any state for production use
+        user = self.getUserFromSession()
+        
+        # Setup
         fig = pylab.Figure()
         canvas = pylab.FigureCanvasBase(fig)
         ax = fig.add_subplot(111)
-        ax.plot(range(0,5), [1,5,7,3,4])
         
-        fig.savefig( "iman/public/renders/tempfile.png", format='png' )
-        return "../renders/tempfile.png"
+        # This will not account for the KGs to LBs conversion
+        all_weights = [weight.weight for weight in user.all_weights]
+        all_weight_dates = [weight.created for weight in user.all_weights]
+        
+        # Data
+        ax.plot(all_weight_dates, all_weights)
+        
+        # Display
+        ax.set_ylabel("Weight (lbs)")
+        #ax.set_xlabel("Date")
+        ax.autoscale_view() # Auto scales the graph around the data
+        ax.grid(True) # Shows the cross axis grid on the graph
+        fig.autofmt_xdate() # Creates a pretty formate for the date on the x axis
+        
+        fig.savefig( "iman/public/renders/%s.png" % str(user.username), format='png' )
+        return "../renders/%s.png" % str(user.username)
 
     def index(self):
         '''functional and mako method'''
-        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
+        user = self.getUserFromSession()
         c.user_id = user.uid
         c.user = user
         
@@ -67,6 +81,7 @@ class HealthController(BaseController):
             c.units.sort()
         
         c.plot_file = self.plot()
+        
         return render('/health/index.mako')
     
     def weight_delete(self):

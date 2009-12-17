@@ -21,16 +21,20 @@ ${h.end_form()}
 % endif
 <br />
 
-<table cellpadding='3'>
+<table cellpadding='3' border = 3>
     <tr>
-        <td>
+        <td align="center">
             <font size='2'>Oops?</font>
         </td>
-        <td>
+        <td align="center">
             <h4>Your Weight</h4>
         </td>
-        <td>
+        <td align="center">
             <h4>On</h4>
+        </td>
+        <td rowspan='${len(c.weight) + 1}' valign="top" align="center">
+            <h3>Progression Graph</h3>
+            <img src=${c.plot_file} />
         </td>
     </tr>
 % for group in c.weight:
