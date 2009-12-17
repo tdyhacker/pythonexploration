@@ -14,6 +14,8 @@ from iman.model.health_tables import Weight, Unit
 from iman.model.account_tables import User
 
 # MatPlotLib
+import matplotlib
+matplotlib.use('Agg')
 import pylab
 
 log = logging.getLogger(__name__)
