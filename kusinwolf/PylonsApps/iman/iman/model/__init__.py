@@ -8,6 +8,7 @@ from iman.model.todo_tables import *
 from iman.model.ban_tables import *
 from iman.model.account_tables import *
 from iman.model.health_tables import *
+from iman.model.timeline_tables import *
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
@@ -57,3 +58,9 @@ mapper(Category, categories_table)
 # User tables
 # =======================================================================================================
 mapper(User, users_table, properties={'last_viewed': relation(View)})
+
+
+# =======================================================================================================
+# Timeline tables
+# =======================================================================================================
+mapper(Event, events_table)
