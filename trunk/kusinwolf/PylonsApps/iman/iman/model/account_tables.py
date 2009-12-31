@@ -68,10 +68,10 @@ class User(Attribute):
         
         if view != None:
             for loc in range(1, len(question.responses) + 1): # Reverse order the list of 
-                if question.responses[-1 * loc].modified >= view.last_viewed: # Does the last_viewing time beat the post time?
+                if (question.responses[-1 * loc].user_id != self.uid) and (question.responses[-1 * loc].modified >= view.last_viewed): # Does the last_viewing time beat the post time?)
                     return True # A new response was added
                 for comment in question.responses[-1 * loc].comments: # Check all comments
-                    if comment.modified >= view.last_viewed: # Does the last_viewing time beat the post time?
+                    if (comment.user_id != self.uid) and (comment.modified >= view.last_viewed): # Does the last_viewing time beat the post time?
                         return True # A new comment was added
             
         elif view == None:
