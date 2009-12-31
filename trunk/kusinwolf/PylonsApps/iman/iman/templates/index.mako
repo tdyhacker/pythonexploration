@@ -26,7 +26,7 @@ ${h.end_form()}
         <td valign='top'>
             % for question in c.personal_questions:
                 % if question.public:
-                    % if c.lastlogin == None or not c.user.wasViewedRecently(question):
+                    % if c.user.hasNotViewedRecently(question):
                         <div class="new_post_on_public_question">
                     % else:
                         <div class="public_question">
@@ -47,7 +47,7 @@ ${h.end_form()}
         </td>
         <td valign='top'>
             % for question in c.not_personal_questions:
-                % if c.lastlogin == None or not c.user.wasViewedRecently(question):
+                % if c.user.hasNotViewedRecently(question):
                     <div class="new_post_on_public_question">
                 % else:
                     <div class="public_question">

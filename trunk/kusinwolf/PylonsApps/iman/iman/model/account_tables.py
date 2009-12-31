@@ -54,18 +54,27 @@ class User(Attribute):
     def changePassword(self, new_password):
         self.password = crypt(new_password, str(self.pass_key))
     
-    def wasViewedRecently(self, question):
+    def hasNotViewedRecently(self, question):
         '''
             If the User has viewed the question before but not since the last post
         '''
-        for view in self.last_viewed: # Check all the viewed questions
-            if view.question_id == question.id: # See if the Question is in the list
-                for loc in range(1, len(question.responses) + 1): # Reverse order the list of 
-                    if (view.last_viewed <= question.responses[-1 * loc].created): # Does the last_viewing time beat the post time?
-                        return True
-                    for comment in question.responses[-1 * loc].comments: # Check all comments
-                        if (comment.created >= view.last_viewed): # Does the last_viewing time beat the post time?
-                            return True # A new comment was added
+        def findComparingView(user, question_id):
+            for view in user.last_viewed: # Check all the viewed questions
+                if view.question_id == question_id: # See if the Question is in the list
+                    return view
+            return None
         
-        # else
-        return True # Never viewed
+        view = findComparingView(self, question.id) # this is the question that needs to be checked
+        
+        if view != None:
+            for loc in range(1, len(question.responses) + 1): # Reverse order the list of 
+                if question.responses[-1 * loc].modified >= view.last_viewed: # Does the last_viewing time beat the post time?
+                    return True # A new response was added
+                for comment in question.responses[-1 * loc].comments: # Check all comments
+                    if comment.modified >= view.last_viewed: # Does the last_viewing time beat the post time?
+                        return True # A new comment was added
+            
+        elif view == None:
+            return True # Never viewed
+        
+        return False # No new comments or repsonses

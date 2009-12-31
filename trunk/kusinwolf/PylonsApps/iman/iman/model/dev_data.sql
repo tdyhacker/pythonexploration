@@ -78,12 +78,12 @@ INSERT INTO questions (created, question, user_id, public) VALUE ('2009-12-03 10
 INSERT INTO responses (created, response, user_id) VALUE ('2009-12-03 10:10:10', "Some random response by User 1", 1);
 INSERT INTO responses (created, response, user_id) VALUE ('2009-12-03 10:10:10', "Some random response by User 2", 2);
 
-INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 1 LIMIT 1), (SELECT id FROM questions WHERE user_id = 1 and public = 0 LIMIT 1));
-INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 1 LIMIT 1), (SELECT id FROM questions WHERE user_id = 1 and public = 1 and question = 'Something Public and viewed from User 1' LIMIT 1));
-INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 1 LIMIT 1), (SELECT id FROM questions WHERE user_id = 1 and public = 1 and question = 'Something Public and not viewed by User 2' LIMIT 1));
-INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 2 LIMIT 1), (SELECT id FROM questions WHERE user_id = 1 and public = 0 LIMIT 1));
-INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 2 LIMIT 1), (SELECT id FROM questions WHERE user_id = 1 and public = 1 and question = 'Something Public and viewed from User 2' LIMIT 1));
-INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 2 LIMIT 1), (SELECT id FROM questions WHERE user_id = 1 and public = 1 and question = 'Something Public and not viewed by User 1' LIMIT 1));
+INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 1 AND public = 0LIMIT 1), (SELECT id FROM responses WHERE user_id = 1 LIMIT 1));
+INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 1 AND question = 'Something Public and viewed from User 1'LIMIT 1), (SELECT id FROM responses WHERE user_id = 1 AND response = "Some random response by User 1" LIMIT 1));
+INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 1 AND question = 'Something Public and not viewed by User 2' LIMIT 1), (SELECT id FROM responses WHERE user_id = 1 AND response = "Some random response by User 1" LIMIT 1));
+INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 2 AND public = 0LIMIT 1), (SELECT id FROM responses WHERE user_id = 1 LIMIT 1));
+INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 2 AND question = 'Something Public and viewed from User 2'LIMIT 1), (SELECT id FROM responses WHERE user_id = 2 AND response = "Some random response by User 2" LIMIT 1));
+INSERT INTO responses_to_question_xref (question_id, response_id) VALUE ((SELECT id FROM questions WHERE user_id = 2 AND question = 'Something Public and not viewed by User 1' LIMIT 1), (SELECT id FROM responses WHERE user_id = 2 AND response = "Some random response by User 2" LIMIT 1));
 
 INSERT INTO user_views_of_question_xref (question_id, user_id, last_viewed) VALUE ((SELECT id FROM questions WHERE user_id = 1 and public = 1 and question = 'Something Public and viewed from User 1' LIMIT 1), 2, '2009-12-03 10:10:11');
 INSERT INTO user_views_of_question_xref (question_id, user_id, last_viewed) VALUE ((SELECT id FROM questions WHERE user_id = 1 and public = 1 and question = 'Something Public and viewed from User 2' LIMIT 1), 1, '2009-12-03 10:10:11');
