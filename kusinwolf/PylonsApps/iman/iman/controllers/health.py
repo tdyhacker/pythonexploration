@@ -58,6 +58,7 @@ class HealthController(BaseController):
         ax.grid(True) # Shows the cross axis grid on the graph
         fig.autofmt_xdate() # Creates a pretty formate for the date on the x axis
         
+        # WARNING: This file path may require a change for an exact path based on server configuration
         fig.savefig( "iman/public/renders/%s.png" % str(user.username), format='png' )
         return "../renders/%s.png" % str(user.username)
 
