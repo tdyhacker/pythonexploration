@@ -131,7 +131,25 @@
       </div>
     </div>
     <div id="ft" role="contentinfo">
-    Event Adder Here!
+    <center>
+    <h1>Add an Event!</h1>
+    <table border='0'>
+    ${h.form(h.url_for(action="event_create"), method="post")}
+      <tr><td>Title</td><td>${h.textarea(name="title", rows=1, cols=80, content="")}</td></tr>
+      <tr><td>Description</td><td>${h.textarea(name="description", rows=7, cols=80, content="")}</td></tr>
+      <tr><td>Start Date</td><td>Year: ${h.select("start_year", None, c.years)} Month: ${h.select("start_month", None, c.months)} Day: ${h.select("start_day", None, c.days)} Hour: ${h.select("start_hour", None, c.hours)} Minute: ${h.select("start_minute", None, c.minutes)} Second: ${h.select("start_second", None, c.seconds)}</td></tr>
+      <tr><td>End Date</td><td>Year: ${h.select("end_year", None, c.years)} Month: ${h.select("end_month", None, c.months)} Day: ${h.select("end_day", None, c.days)} Hour: ${h.select("end_hour", None, c.hours)} Minute: ${h.select("end_minute", None, c.minutes)} Second: ${h.select("end_second", None, c.seconds)}<br />* (Not required for single point date, only required for duration of time)</td></tr>
+      <tr><td>Over a Peroid of time?</td><td>${h.select("isDuration", None, c.duration)}<br />* (If the event spans across the start and end dates)</td></tr>
+      <tr><td>Image</td><td>${h.textarea(name="image", rows=1, cols=80, content="")}<br />* (a link to an image will work)</td></tr>
+      <tr><td>Link</td><td>${h.textarea(name="link", rows=1, cols=80, content="")}<br />* (a link when the title is clicked on in the details popup)</td></tr>
+      <tr><td>Title Text Color</td><td>${h.textarea(name="textColor", rows=1, cols=5, content="")}<br />* (Hex value of the color you desire, Example: "0F32AB")</td></tr>
+      <tr><td>Bar Color</td><td>${h.textarea(name="color", rows=1, cols=5, content="")}<br />* (Hex value of the color you desire, Example: "0F32AB")</td></tr>
+      <tr><td>Icon</td><td>${h.select("icon", None, c.icons)}<br />* (What picture shows up on the overview next to the title)</td></tr>
+      <tr><td>Caption</td><td>${h.textarea(name="caption", rows=1, cols=80, content="")}<br />* (Popup text when hovering over the title in the overview)</td></tr>
+      <tr><td colspan=2 align=center>${h.submit("Submit", "Add Event")}</td></tr>
+    ${h.end_form()}
+    </table>
+    </center>
     </div>
   </div>
   </body>
