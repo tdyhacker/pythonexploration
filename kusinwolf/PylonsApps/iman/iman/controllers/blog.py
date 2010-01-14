@@ -21,9 +21,6 @@ class BlogController(BaseController):
         # Basic Home grown security layer
         if session.get("identity") is None:
             return redirect_to(controller="account", action="login")
-
-    def signout(self):
-        return redirect_to(controller="account", action="logout")
     
     def change_password(self):
         return redirect_to(controller="account", action="change_password")
@@ -52,40 +49,41 @@ class BlogController(BaseController):
         c.personal_questions = c.not_personal_questions = []
         
         if meta.Session.query(Question).all() != []:
-            c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("id DESC").all() # Queries for only what you own
-            c.not_personal_questions = meta.Session.query(Question).filter("public").filter("user_id != %d" % user.uid).order_by("id DESC").all() # Queries for everything but what you own
+            c.personal_questions = meta.Session.query(Question).filter_by(user=user).order_by("modified DESC").all() # Queries for only what you own
+            c.not_personal_questions = meta.Session.query(Question).filter("public").filter("user_id != %d" % user.uid).order_by("modified DESC").all() # Queries for everything but what you own
         
         return render('/index.mako')
 
     def comment_edit(self, id):
         '''mako method'''
-        if meta.Session.query(Comment).filter_by(id=id).count():
-            c.comment = meta.Session.query(Comment).filter_by(id=id).one()
+        if meta.Session.query(Comment).filter_by(id = id).count():
+            c.comment = meta.Session.query(Comment).filter_by(id = id).one()
             c.user_id = session['identity'].uid
             
-            if c.comment.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to edit this question and should not be allowed to "hack" into it
+            self.security_ownership(c.comment.user_id)
             
             return render('/comment_edit.mako')
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
     
     def comment_update(self, id):
         '''functional method'''
         if meta.Session.query(Comment).filter_by(id=id).count():
             meta.Session.begin()
-            c.comment = meta.Session.query(Comment).filter_by(id=id).one()
-            c.user_id = session['identity'].uid
+            comment = meta.Session.query(Comment).filter_by(id=id).one()
+            resposne = comment.response[0]
+            question = response.question[0]
+            user_id = session['identity'].uid
             
-            if c.comment.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to update this question and should not be allowed to "hack" into it
+            self.security_ownership(comment.user_id)
             
-            c.comment.comment = request.POST.get("comment", '')
+            comment.comment = request.POST.get("comment", '')
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             meta.Session.commit()
             
-            return redirect_to(action="question_show", id=c.comment.response[0].question[0].id)
+            return redirect_to(action = "question_show", id = question.id)
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
 
     def comment_insert(self):
         '''functional method'''
@@ -94,56 +92,73 @@ class BlogController(BaseController):
         user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
         
         response = meta.Session.query(Response).filter_by(id = int(request.POST.get('id'))).one()
+        question = response.question[0]
         comment = Comment(comment = str(request.params['comment'].replace("'", "\'")), user = user)
         
         if comment.comment == '' or comment.comment == None:
             del comment
         else:
             response.comments.append(comment)
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
         
         meta.Session.commit()
         
-        return redirect_to(action="question_show", id=response.question[0].id)
+        return redirect_to(action = "question_show", id = question.id)
     
     def question_edit(self, id):
         '''mako method'''
-        if meta.Session.query(Question).filter_by(id=id).count():
-            c.question = meta.Session.query(Question).filter_by(id=id).one()
+        if meta.Session.query(Question).filter_by(id = id).count():
+            c.question = meta.Session.query(Question).filter_by(id = id).one()
             c.user_id = session['identity'].uid
             
-            if c.question.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to edit this question and should not be allowed to "hack" into it
+            self.security_ownership(c.question.user_id)
             
             return render('/question_edit.mako')
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
     
     def question_update(self, id):
-        '''functional method'''
+        '''functional method
+            Commits all changes of the question to the database
+        '''
         if meta.Session.query(Question).filter_by(id=id).count():
             meta.Session.begin()
-            c.question = meta.Session.query(Question).filter_by(id=id).one()
-            c.user_id = session['identity'].uid
+            question = meta.Session.query(Question).filter_by(id = id).one()
+            user_id = session['identity'].uid
             
-            if c.question.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to update this question and should not be allowed to "hack" into it
+            self.security_ownership(question.user_id)
             
-            c.question.question = request.POST.get("question", '')
+            question.question = request.POST.get("question", '')
             meta.Session.commit()
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             
-            return redirect_to(action="question_show", id=c.question.id)
+            return redirect_to(action = "question_show", id = question.id)
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
+    
+    def question_update_changed(self, id):
+        '''functional method with no default return
+            Updates the question's modified record in the database
+        '''
+        if meta.Session.query(Question).filter_by(id=id).count():
+            meta.Session.begin()
+            question = meta.Session.query(Question).filter_by(id = id).one()
+            user_id = session['identity'].uid
+            
+            self.security_ownership(question.user_id)
+            
+            question.modified = datetime.now()
+            meta.Session.commit()
     
     def question_show(self, id):
         '''mako method'''
-        if meta.Session.query(Question).filter_by(id=id).count():
-            c.question = meta.Session.query(Question).filter_by(id=id).one()
+        if meta.Session.query(Question).filter_by(id = id).count():
+            c.question = meta.Session.query(Question).filter_by(id = id).one()
             c.user_id = session['identity'].uid
             last_viewed = None
             
-            if not c.question.public and c.question.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to view this page and should not be allowed to "hack" into it
+            if not c.question.public:
+                self.security_ownership(c.question.user_id)
             
             c.question.responses.sort(lambda x,y: cmp(x.created, y.created)) # Sort the responses by creation date, not by ID like the ORM is doing
             
@@ -151,9 +166,9 @@ class BlogController(BaseController):
             
             if c.question.user == None:
                 # Temp name to help with error checking and debugging on the dev side
-                c.question.user = User(username="Anonymous", firstname="Anonymous", lastname="McNonymous")
+                c.question.user = User(username = "Anonymous", firstname = "Anonymous", lastname = "McNonymous")
             
-            user = meta.Session.query(User).filter_by(uid=int(session['identity'].uid)).one()
+            user = meta.Session.query(User).filter_by(uid = int(session['identity'].uid)).one()
             
             if meta.Session.query(View).filter_by(user_id = user.uid).filter_by(question_id = c.question.id).count():
                 # If there already existing an entry for the last time the user viewed the question
@@ -168,13 +183,13 @@ class BlogController(BaseController):
         
             return render('/question_show.mako')
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
     
     def question_insert(self):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
+        user = meta.Session.query(User).filter_by(username = session['identity'].username).one()
         
         question = Question(question = str(request.params['question'].replace("'", "\'")))
         response = Response(response = str(request.params['response'].replace("'", "\'")))
@@ -189,75 +204,77 @@ class BlogController(BaseController):
         
         meta.Session.commit()
         
-        return redirect_to(action="index")
+        return redirect_to(action = "index")
     
     def question_public(self):
         '''functional method to show a question to the public'''
-        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).one()
+        q = meta.Session.query(Question).filter_by(id = int(request.params['id'])).one()
         q.public = True
         meta.Session.commit()
         
-        return redirect_to(action="question_show", id=int(request.params['id']))
+        return redirect_to(action="question_show", id = int(request.params['id']))
     
     def question_private(self):
         '''functional method to hide a question from the public'''
-        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).one()
+        q = meta.Session.query(Question).filter_by(id = int(request.params['id'])).one()
         q.public = False
         meta.Session.commit()
         
-        return redirect_to(action="question_show", id=int(request.params['id']))
+        return redirect_to(action = "question_show", id = int(request.params['id']))
 
     def response_edit(self, id):
         '''mako method'''
         if meta.Session.query(Response).filter_by(id=id).count():
-            c.response = meta.Session.query(Response).filter_by(id=id).one()
+            c.response = meta.Session.query(Response).filter_by(id = id).one()
             c.user_id = session['identity'].uid
             
-            if c.response.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to edit this question and should not be allowed to "hack" into it
+            self.security_ownership(c.response.user_id)
             
             return render('/response_edit.mako')
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
     
     def response_update(self, id):
         '''functional method'''
         if meta.Session.query(Response).filter_by(id=id).count():
             meta.Session.begin()
-            c.response = meta.Session.query(Response).filter_by(id=id).one()
-            c.user_id = session['identity'].uid
+            response = meta.Session.query(Response).filter_by(id = id).one()
+            question = response.question[0]
+            user_id = session['identity'].uid
             
-            if c.response.user_id != c.user_id:
-                return redirect_to(action="index") # They do not have permission to update this question and should not be allowed to "hack" into it
+            self.security_ownership(c.response.user_id)
             
-            c.response.response = request.POST.get("response", '')
+            response.response = request.POST.get("response", '')
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             meta.Session.commit()
             
-            return redirect_to(action="question_show", id=c.response.question[0].id)
+            return redirect_to(action = "question_show", id = question.id)
         else:
-            return redirect_to(action="index")
+            return redirect_to(action = "index")
 
     def response_insert(self):
         '''functional method'''
         meta.Session.begin()
         
-        user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
+        user = meta.Session.query(User).filter_by(username = session['identity'].username).one()
         
-        q = meta.Session.query(Question).filter_by(id=int(request.params['id'])).one()
-        r = Response(response = str(request.params['response'].replace("'", "\'")), user = user)
+        question = meta.Session.query(Question).filter_by(id = int(request.params['id'])).one()
+        response = Response(response = str(request.params['response'].replace("'", "\'")), user = user)
         
-        if r.response == '' or r.response == None:
-            del r
+        if response.response == '' or response.response == None:
+            del response
         else:
-            q.responses.append(r)
+            question.responses.append(response)
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
         
         meta.Session.commit()
         
-        return redirect_to(action="question_show", id=int(request.params['id']))
+        return redirect_to(action = "question_show", id = int(request.params['id']))
     
     def response_show(self, id):
-        if meta.Session.query(Response).filter_by(id=id).count():
-            c.response = meta.Session.query(Response).filter_by(id=id).one()
+        '''mako method'''
+        if meta.Session.query(Response).filter_by(id = id).count():
+            c.response = meta.Session.query(Response).filter_by(id = id).one()
             c.user_id = session['identity'].uid
             
             if not c.response.question[0].public and c.response.question[0].user_id != c.user_id:
@@ -270,3 +287,14 @@ class BlogController(BaseController):
             return render('/comment_on_response.mako')
         else:
             return redirect_to(action="index") # The response does not exist
+    
+    def security_ownership(self, id):
+        if not session.has_key("indentity"):
+            return redirect_to(action = "index")
+        
+        user = session['indentity'].uid
+        if id != user.uid: # If the user id does not equal the provided id
+            return redirect_to(action = "index") # They do not have permission to view this page and should not be allowed to "hack" into it
+
+    def signout(self):
+        return redirect_to(controller="account", action="logout")
