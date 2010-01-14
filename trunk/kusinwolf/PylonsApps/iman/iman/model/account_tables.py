@@ -66,15 +66,10 @@ class User(Attribute):
         
         view = findComparingView(self, question.id) # this is the question that needs to be checked
         
-        if view != None:
-            for loc in range(1, len(question.responses) + 1): # Reverse order the list of 
-                if (question.responses[-1 * loc].user_id != self.uid) and (question.responses[-1 * loc].modified >= view.last_viewed): # Does the last_viewing time beat the post time?)
-                    return True # A new response was added
-                for comment in question.responses[-1 * loc].comments: # Check all comments
-                    if (comment.user_id != self.uid) and (comment.modified >= view.last_viewed): # Does the last_viewing time beat the post time?
-                        return True # A new comment was added
+        if (view != None) and (question.modified >= view.last_viewed):
+            return True # An update has occured within the question/blog/thread
             
         elif view == None:
             return True # Never viewed
         
-        return False # No new comments or repsonses
+        return False # No update has occured

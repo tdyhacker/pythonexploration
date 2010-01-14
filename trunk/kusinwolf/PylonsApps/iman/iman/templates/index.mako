@@ -1,6 +1,6 @@
 <%inherit file="base.mako"/>
 <%def name="head_tags()">
-    <title>Blog Index</title>
+    <title>Blogs</title>
 </%def>
 
 Add a question here<br />
@@ -36,7 +36,7 @@ ${h.end_form()}
                 % endif
                     ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))}
                     <div>
-                        Responses (${len(question.responses)}) - Comments (${question.getNumberOfComments()})
+                        ${len(question.responses)} Responses - ${question.getNumberOfComments()} Comments - Modified: ${question.modified}
                     </div>
                     <br />
                 </div>
@@ -54,7 +54,7 @@ ${h.end_form()}
                 % endif
                 ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))}
                 <div>
-                Responses (${len(question.responses)}) - Comments (${question.getNumberOfComments()})
+                    ${len(question.responses)} Responses - ${question.getNumberOfComments()} Comments - Modified: ${question.modified}
                 </div>
                 <br />
                 </div>
