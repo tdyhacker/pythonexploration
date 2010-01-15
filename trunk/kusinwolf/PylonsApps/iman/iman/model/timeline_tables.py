@@ -44,11 +44,13 @@ class Event(Attribute):
         
         # Convert to a useable format
         if self.__dict__.get("start", None):
-            p_dict["start"] = self.__dict__["start"].strftime("%Y-%m-%dT%H:%M:%S")
+            p_dict["start"] = self.__dict__["start"] - timedelta(hours=6)
+            p_dict["start"] = p_dict["start"].strftime("%Y-%m-%dT%H:%M:%S")
         
         # Convert to a useable format
         if self.__dict__.get("end", None) and self.__dict__.get("end") != "0000-00-00 00:00:00":
-            p_dict["end"] = self.__dict__["end"].strftime("%Y-%m-%dT%H:%M:%S")
+            p_dict["end"] = self.__dict__["end"] - timedelta(hours=6)
+            p_dict["end"] = p_dict["end"].strftime("%Y-%m-%dT%H:%M:%S")
         
         return str("%s,\n" % p_dict)
     
