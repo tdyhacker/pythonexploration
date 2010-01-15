@@ -1,65 +1,125 @@
-from Globals import _ENGINE_game_type
-
 class Character(object):
-    def __init__(self):
-        self.name = "New Character"
+    def __init__(self, game, engine, server_id = None, experience = 0, level = 0, rank = 0, profession = None, default_attributes = 0, name = "New Character", position = (0,0,0)):
+        # Character Info
+        self.name = name
+        self.server_id = server_id
         
-        # EVE Style or D&D?
-        if _ENGINE_game_type == "EVE Style":
-            starting_attribute = 8 # max 30, logorithmic 
-        elif _ENGINE_game_type == "D&D Style":
-            starting_attribute = 7 # max 18, or 18 + 100% from 19 to 25 on expanded rules
-        elif _ENGINE_game_type == "Fallout Style":
-            starting_attribute = 5 # max 10
+        self.game = game
+        self.engine = engine
         
-        self.intellegence = self.charisma = self.perception = self.willpower = self.memory = starting_attribute
-        self.luck = 5 # default luck, out of a 100 percetage
+        # Character attributes
+        self.intellegence = self.charisma = self.perception = self.willpower = self.memory = default_attributes
+        self.experience = experience
+        self.level = level
+        self.rank = rank
+        self.profession = profession
         
-        self.experience = 0
-        self.level = 0
-        self.rank = 0
-        self.profession = "Mingebag"
-        
-        # Position, x, y, z
-        self.position = [10,10,0] # Within the region
-        self.region = [0,0,0] # Within the world
-        self.universe = [0,0,0] # Within the universe
+        # Character Position, x, y, z
+        self.regionalPosition = position # Within the region
+        self.worldlyPosition = position # Within the world
+        self.universalPosition = position # Within the universe
     
     def __repr__(self):
         return "<Character %s>" % self.name
     
-    def getPosition(self, position, style):
+    def getRegionalPosition(self):
         '''
-        slots
-            0: Regional position
-            1: World Position
-            2: Universal position
-        Style
-            0: (x,y)
-            1: (x,z)
-            2: (y,z)
-            3: (x,y,z)
+            Domains
+                Regional position
+                Worldly Position
+                Universal position
         '''
-        if style == 0:
-            style = [0,1]
-        elif style == 1:
-            style = [0,2]
-        elif style == 2:
-            style = [1,2]
-        elif style == 3:
-            style = [0,1,2]
+        return self.regionalPosition
         
-        if position == 0:
-            position = self.position
-        elif position == 1:
-            position = self.region
-        elif position == 2:
-            position = self.universe
+    def getWorldlyPosition(self):
+        '''
+            Domains
+                Regional position
+                Worldly Position
+                Universal position
+        '''
+        return self.worldlyPosition
         
-        returnposition = []
-        
-        for slice in style:
-            returnposition.append(position[slice])
-        
-        return tuple(returnposition)
-        
+    def getUniversalPosition(self):
+        '''
+            Domains
+                Regional position
+                Worldly Position
+                Universal position
+        '''
+        return self.universalPosition
+    
+    def getName(self):
+        return self.name
+    
+    def getExperience(self):
+        return self.name
+    
+    def getLevel(self):
+        return self.level
+    
+    def getRank(self):
+        return self.rank
+    
+    def getProfession(self):
+        return self.profession
+    
+    def getIntellegence(self):
+        return self.intellegence
+    
+    def getCharisma(self):
+        return self.charisma
+    
+    def getPerception(self):
+        return self.perception
+    
+    def getWillpower(self):
+        return self.willpower
+    
+    def getMemory(self):
+        return self.memory
+    
+    def setName(self, value):
+        self.name = value
+    
+    def setExperience(self, value):
+        self.name = value
+    
+    def setLevel(self, value):
+        self.level = value
+    
+    def setRank(self, value):
+        self.rank = value
+    
+    def setProfession(self, value):
+        self.profession = value
+    
+    def setIntellegence(self, value):
+        '''
+            HAH, shame it's not this easy in reality! :P
+        '''
+        self.intellegence = value
+    
+    def setCharisma(self, value):
+        '''
+            HAH, shame it's not this easy in reality! :P
+        '''
+        self.charisma = value
+    
+    def setPerception(self, value):
+        '''
+            HAH, shame it's not this easy in reality! :P
+        '''
+        self.perception = value
+    
+    def setWillpower(self, value):
+        '''
+            HAH, shame it's not this easy in reality! :P
+        '''
+        self.willpower = value
+    
+    def setMemory(self, value):
+        '''
+            HAH, shame it's not this easy in reality! :P
+        '''
+        self.memory = value
