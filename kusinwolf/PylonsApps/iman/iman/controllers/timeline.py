@@ -45,7 +45,7 @@ class TimelineController(BaseController):
         
         if (str(request.POST.get("isDuration")) == "True"):
             # If there is a duration of time then use the end time, else ignore it
-            event.end = datetime(year=int(request.POST.get("end_year")), month=int(request.POST.get("end_month")), day=int(request.POST.get("end_day")), hour=int(request.POST.get("end_hour")), minute=int(request.POST.get("end_minute")), second=int(request.POST.get("end_second"))),
+            event.end = datetime(year=int(request.POST.get("end_year")), month=int(request.POST.get("end_month")), day=int(request.POST.get("end_day")), hour=int(request.POST.get("end_hour")), minute=int(request.POST.get("end_minute")), second=int(request.POST.get("end_second")))
         
         event.icon = None
         if request.POST.get("icon", None):
