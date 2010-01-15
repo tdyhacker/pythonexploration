@@ -36,7 +36,7 @@ ${h.end_form()}
                 % endif
                     ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))}
                     <div>
-                        ${len(question.responses)} Responses - ${question.getNumberOfComments()} Comments - Modified: ${question.modified}
+                        Modified: ${question.modified}
                     </div>
                     <br />
                 </div>
@@ -54,7 +54,7 @@ ${h.end_form()}
                 % endif
                 ${h.link_to(question.question, h.url_for(controller="blog", action="question_show", id=question.id))}
                 <div>
-                    ${len(question.responses)} Responses - ${question.getNumberOfComments()} Comments - Modified: ${question.modified}
+                    Modified: ${question.modified}
                 </div>
                 <br />
                 </div>

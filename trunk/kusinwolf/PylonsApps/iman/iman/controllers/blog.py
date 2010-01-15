@@ -71,14 +71,15 @@ class BlogController(BaseController):
         if meta.Session.query(Comment).filter_by(id=id).count():
             meta.Session.begin()
             comment = meta.Session.query(Comment).filter_by(id=id).one()
-            resposne = comment.response[0]
-            question = response.question[0]
+            user_response = comment.response[0]
+            question = user_response.question[0]
             user_id = session['identity'].uid
             
             self.security_ownership(comment.user_id)
             
             comment.comment = request.POST.get("comment", '')
-            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
+            if not question.public:
+                self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             meta.Session.commit()
             
             return redirect_to(action = "question_show", id = question.id)
@@ -99,7 +100,8 @@ class BlogController(BaseController):
             del comment
         else:
             response.comments.append(comment)
-            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
+            if not question.public:
+                self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
         
         meta.Session.commit()
         
@@ -192,13 +194,13 @@ class BlogController(BaseController):
         user = meta.Session.query(User).filter_by(username = session['identity'].username).one()
         
         question = Question(question = str(request.params['question'].replace("'", "\'")))
-        response = Response(response = str(request.params['response'].replace("'", "\'")))
-        response.user = user
+        user_response = Response(response = str(request.params['response'].replace("'", "\'")))
+        user_response.user = user
         
-        if response.response == '' or response.response == None:
-            del response
+        if user_response.response == '' or user_response.response == None:
+            del user_response
         else:
-            question.responses.append(response)
+            question.responses.append(user_response)
         
         question.user = user
         
@@ -236,16 +238,16 @@ class BlogController(BaseController):
     
     def response_update(self, id):
         '''functional method'''
-        if meta.Session.query(Response).filter_by(id=id).count():
+        if meta.Session.query(Response).filter_by(id = id).count():
             meta.Session.begin()
-            response = meta.Session.query(Response).filter_by(id = id).one()
-            question = response.question[0]
+            user_response = meta.Session.query(Response).filter_by(id = id).one()
+            question = user_response.question[0]
             user_id = session['identity'].uid
             
-            self.security_ownership(c.response.user_id)
+            self.security_ownership(user_response.user_id)
             
-            response.response = request.POST.get("response", '')
-            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
+            user_response.response = request.POST.get("response", '')
+            self.question_update_changed(user_response.user_id) # Update the question/blog/thread to signify a modification has occured
             meta.Session.commit()
             
             return redirect_to(action = "question_show", id = question.id)
@@ -259,16 +261,18 @@ class BlogController(BaseController):
         user = meta.Session.query(User).filter_by(username = session['identity'].username).one()
         
         question = meta.Session.query(Question).filter_by(id = int(request.params['id'])).one()
-        response = Response(response = str(request.params['response'].replace("'", "\'")), user = user)
+        user_response = Response(response = str(request.params['response'].replace("'", "\'")), user = user)
         
-        if response.response == '' or response.response == None:
-            del response
+        if user_response.response == '' or user_response.response == None:
+            del user_response
         else:
-            question.responses.append(response)
-            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
+            question.responses.append(user_response)
+            
+            if not question.public:
+                self.question_update_changed(question.user_id) # Update the question/blog/thread to signify a modification has occured
         
         meta.Session.commit()
-        
+    
         return redirect_to(action = "question_show", id = int(request.params['id']))
     
     def response_show(self, id):
@@ -289,12 +293,12 @@ class BlogController(BaseController):
             return redirect_to(action="index") # The response does not exist
     
     def security_ownership(self, id):
-        if not session.has_key("indentity"):
-            return redirect_to(action = "index")
+        if not session["identity"]:
+            raise "User not Authorized"
         
-        user = session['indentity'].uid
-        if id != user.uid: # If the user id does not equal the provided id
-            return redirect_to(action = "index") # They do not have permission to view this page and should not be allowed to "hack" into it
+        user_id = session['identity'].uid
+        if id != user_id: # If the user id does not equal the provided id
+            raise "User not Authorized" # They do not have permission to view this page and should not be allowed to "hack" into it
 
     def signout(self):
         return redirect_to(controller="account", action="logout")

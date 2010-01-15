@@ -64,6 +64,9 @@ class Question(Attribute):
             number_of_comments += len(response.comments)
         
         return number_of_comments
+    
+    def getNumberOfResponses(self):
+        return len(self.responses)
 
 class Response(Attribute):
     def __repr__(self):
