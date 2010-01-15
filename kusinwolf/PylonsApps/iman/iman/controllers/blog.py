@@ -61,6 +61,7 @@ class BlogController(BaseController):
             c.user_id = session['identity'].uid
             
             self.security_ownership(c.comment.user_id)
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             
             return render('/comment_edit.mako')
         else:
@@ -78,8 +79,7 @@ class BlogController(BaseController):
             self.security_ownership(comment.user_id)
             
             comment.comment = request.POST.get("comment", '')
-            if not question.public:
-                self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             meta.Session.commit()
             
             return redirect_to(action = "question_show", id = question.id)
@@ -101,7 +101,9 @@ class BlogController(BaseController):
         else:
             response.comments.append(comment)
             if not question.public:
-                self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
+                self.security_ownership(question.user_id)
+            
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
         
         meta.Session.commit()
         
@@ -114,6 +116,8 @@ class BlogController(BaseController):
             c.user_id = session['identity'].uid
             
             self.security_ownership(c.question.user_id)
+            
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             
             return render('/question_edit.mako')
         else:
@@ -146,8 +150,6 @@ class BlogController(BaseController):
             meta.Session.begin()
             question = meta.Session.query(Question).filter_by(id = id).one()
             user_id = session['identity'].uid
-            
-            self.security_ownership(question.user_id)
             
             question.modified = datetime.now()
             meta.Session.commit()
@@ -247,7 +249,7 @@ class BlogController(BaseController):
             self.security_ownership(user_response.user_id)
             
             user_response.response = request.POST.get("response", '')
-            self.question_update_changed(user_response.user_id) # Update the question/blog/thread to signify a modification has occured
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             meta.Session.commit()
             
             return redirect_to(action = "question_show", id = question.id)
@@ -269,7 +271,9 @@ class BlogController(BaseController):
             question.responses.append(user_response)
             
             if not question.public:
-                self.question_update_changed(question.user_id) # Update the question/blog/thread to signify a modification has occured
+                self.security_ownership(question.user_id)
+            
+            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
         
         meta.Session.commit()
     
