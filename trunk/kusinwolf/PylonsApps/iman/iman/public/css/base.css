@@ -1,5 +1,6 @@
 /* Generic Selectors */
-body {
+body
+{
     /*background-image: url("../imgs/Aperture Science.png");*/
     /*background-position: center;*/
     /*background-color: #000000;*/
@@ -11,9 +12,32 @@ body {
     padding-right: 140px;
 }
 
-.new_post_on_public_question {
+.new_post_on_public_question
+{
     color: #FFFFFF;
-    background-color: #3333FF;
+    background-color: #33DD33;
+}
+
+.new_post_on_public_question a:visited,
+.public_question a:visited
+{
+    
+}
+
+.new_post_on_public_question a:hover,
+.public_question a:hover
+{
+    color: #FFFFFF;
+}
+
+
+.private_question a:visited
+{
+    
+}
+.private_question a:hover
+{
+    color: #AAAAAA;
 }
 
 .new_post_on_public_question div,
@@ -24,31 +48,37 @@ body {
     font-size: 12px;
 }
 
-.private_question {
+.private_question
+{
 }
-.public_question {
-    background-color: #9999FF;
+.public_question
+{
+    background-color: #BBBBBB;
 }
 
 /* A single tab usful for pushing text a small distance */
-.tab {
+.tab
+{
     padding-left: 44px;
 }
 
-.tableheader {
+.tableheader
+{
     text-align: center;
     font-size: 22px;
     font-weight: bold;
     color: #D5BFFF;
 }
 
-.post_info {
+.post_info
+{
     font-weight: bold;
     font-size: 10px;
     padding-left: 22px;
 }
 
-.comment {
+.comment
+{
     font-size: 14px;
     padding-left: 44px;
     padding-top: 4px;
@@ -56,6 +86,18 @@ body {
     background-color: #DDDDDD;
 }
 
-.paragraph_buffer {
+.paragraph_buffer
+{
     padding-top: 15px;
+}
+
+/* The base mako div's for links */
+#footer
+{
+    
+}
+
+#link_header
+{
+    
 }

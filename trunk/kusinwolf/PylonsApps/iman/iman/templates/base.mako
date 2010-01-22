@@ -5,6 +5,9 @@
     <link rel="stylesheet" type="text/css" href="../../css/base.css">
   </head>
   <body bgcolor="EEEEEE">
+    <div id='link_header'>
+        ${self.footer()}
+    </div>
     ${next.body()}
     <BR />
     <div id='footer'>
