@@ -61,7 +61,6 @@ class BlogController(BaseController):
             c.user_id = session['identity'].uid
             
             self.security_ownership(c.comment.user_id)
-            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             
             return render('/comment_edit.mako')
         else:
@@ -116,8 +115,6 @@ class BlogController(BaseController):
             c.user_id = session['identity'].uid
             
             self.security_ownership(c.question.user_id)
-            
-            self.question_update_changed(question.id) # Update the question/blog/thread to signify a modification has occured
             
             return render('/question_edit.mako')
         else:
