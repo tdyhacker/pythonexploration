@@ -1,15 +1,25 @@
-# In this example, a Simple Single level inheritance is performed between two sets of classes, both with two attributes, a String and List
-# In the first set, the list is copied using the "[:]" extension of the list object to use a new memory space and copy the original list to it
-# as well as copying the hash table and tuple to prevent same memory sharing between instances of objects
-# In the second set, the list is simply a pointer to the entire inheritance tree that creates problems when using more than one instance of the sub class
-# the same problem occurs with a hash as well, but does not seem to affect a tuple
+#!/usr/bin/env python
 
-# There can be some unquie power to having this form of inheritance, but for the majority of my work I have to fight with this problem consistently
-# and having a good explanation and example to clearify everything helps.
+"""
+In this example, a Simple Single level inheritance is performed between two sets of classes, both with two attributes, a String and List
+In the first set, the list is copied using the "[:]" extension of the list object to use a new memory space and copy the original list to it
+as well as copying the hash table and tuple to prevent same memory sharing between instances of objects
+In the second set, the list is simply a pointer to the entire inheritance tree that creates problems when using more than one instance of the sub class
+the same problem occurs with a hash as well, but does not seem to affect a tuple
+
+There can be some unquie power to having this form of inheritance, but for the majority of my work I have to fight with this problem consistently
+and having a good explanation and example to clearify everything helps.
+"""
 
 # First Set
 class One(object):
+    """
+    Parent Class
+    """
     def __init__(self, name = "", var = [], tu = (), hash = {}):
+        """
+        This class should make copies of all the variable types
+        """
         self.name = name
         self.vars = var[:] # Copy the list
         self.hash = hash.copy() # Copy the hash
@@ -17,12 +27,21 @@ class One(object):
         print self.name, "-", self.vars, self.tu, self.hash
 
 class Two(One):
+    """
+    Child Class
+    """
     def __init__(self, name = "", var = [], tu = (), hash = {}):
         One.__init__(self, name, var, tu, hash)
 
 # Second Set
 class Three(object):
+    """
+    Parent Class
+    """
     def __init__(self, name = "", var = [], tu = (), hash = {}):
+        """
+        This class should not directly make copies of all the variable types
+        """
         self.name = name
         self.vars = var # Point to list
         self.hash = hash # Point to the hash
@@ -30,6 +49,9 @@ class Three(object):
         print self.name, "-", self.vars, self.tu, self.hash
 
 class Four(Three):
+    """
+    Child Class
+    """
     def __init__(self, name = "", var = [], tu = (), hash = {}):
         Three.__init__(self, name, var, tu, hash)
 
