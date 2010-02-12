@@ -1,0 +1,3 @@
+include eve_data/config/deployment.ini_tmpl
+recursive-include eve_data/public *
+recursive-include eve_data/templates *
