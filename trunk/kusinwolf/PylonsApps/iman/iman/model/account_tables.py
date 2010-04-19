@@ -45,7 +45,7 @@ class User(Attribute):
             return None
     
     def validatePassword(self, password):
-        print self.password, "'%s'" % password, crypt(str(password), str(self.created.second)), self.created.second
+        #print self.password, "'%s'" % password, crypt(str(password), str(self.created.second)), self.created.second
         if str(self.password) == crypt(str(password), str(self.pass_key)):
             return True
         else:
