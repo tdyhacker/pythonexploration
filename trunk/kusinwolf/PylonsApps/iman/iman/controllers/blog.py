@@ -29,6 +29,7 @@ class BlogController(BaseController):
         '''functional method'''
         
         text = text.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;") # This prevents any HTML code from being inserted into the page causing unwanted execution within a question
+        text = text.replace("\n", "<br />")
         text = text.replace("[br]","<br />").replace("[BR]","<br />")
         text = text.replace("[p]","<p>").replace("[/p]","</p>").replace("[P]","<p>").replace("[/P]","</p>")
         text = text.replace("[ul]","<ul>").replace("[/ul]","</ul>").replace("[UL]","<ul>").replace("[/UL]","</ul>")
