@@ -133,7 +133,7 @@ class TodoController(BaseController):
     def task_create(self):
         '''functional method'''
         
-        meta.Session.begin()
+        meta.Session.begin_nested()
         meta.Session.save(
             Task(task = str(request.POST.get("task")),
                  user_id = int(session['identity'].uid),

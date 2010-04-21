@@ -98,7 +98,7 @@ class HealthController(BaseController):
     def weight_add(self):
         '''functional method'''
         
-        #meta.Session.begin()
+        meta.Session.begin_nested()
         meta.Session.save(
             Weight(weight = float(request.POST.get("weight")),
                  user_id = int(session['identity'].uid),

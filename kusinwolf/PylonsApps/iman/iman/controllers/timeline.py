@@ -32,7 +32,7 @@ class TimelineController(BaseController):
     
     def event_create(self):
         '''functional method'''
-        meta.Session.begin()
+        meta.Session.begin_nested()
         
         event = Event(
                     start = datetime(year=int(request.POST.get("start_year")), month=int(request.POST.get("start_month")), day=int(request.POST.get("start_day")), hour=int(request.POST.get("start_hour")), minute=int(request.POST.get("start_minute")), second=int(request.POST.get("start_second"))),

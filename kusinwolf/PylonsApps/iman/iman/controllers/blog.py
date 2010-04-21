@@ -69,7 +69,7 @@ class BlogController(BaseController):
     def comment_update(self, id):
         '''functional method'''
         if meta.Session.query(Comment).filter_by(id=id).count():
-            meta.Session.begin()
+            meta.Session.begin_nested()
             comment = meta.Session.query(Comment).filter_by(id=id).one()
             user_response = comment.response[0]
             question = user_response.question[0]
@@ -87,7 +87,7 @@ class BlogController(BaseController):
 
     def comment_insert(self):
         '''functional method'''
-        meta.Session.begin()
+        meta.Session.begin_nested()
         
         user = meta.Session.query(User).filter_by(username=session['identity'].username).one()
         
@@ -125,7 +125,7 @@ class BlogController(BaseController):
             Commits all changes of the question to the database
         '''
         if meta.Session.query(Question).filter_by(id=id).count():
-            meta.Session.begin()
+            meta.Session.begin_nested()
             question = meta.Session.query(Question).filter_by(id = id).one()
             user_id = session['identity'].uid
             
@@ -144,7 +144,7 @@ class BlogController(BaseController):
             Updates the question's modified record in the database
         '''
         if meta.Session.query(Question).filter_by(id=id).count():
-            meta.Session.begin()
+            meta.Session.begin_nested()
             question = meta.Session.query(Question).filter_by(id = id).one()
             user_id = session['identity'].uid
             
@@ -188,7 +188,7 @@ class BlogController(BaseController):
     
     def question_insert(self):
         '''functional method'''
-        meta.Session.begin()
+        meta.Session.begin_nested()
         
         user = meta.Session.query(User).filter_by(username = session['identity'].username).one()
         
@@ -238,7 +238,7 @@ class BlogController(BaseController):
     def response_update(self, id):
         '''functional method'''
         if meta.Session.query(Response).filter_by(id = id).count():
-            meta.Session.begin()
+            meta.Session.begin_nested()
             user_response = meta.Session.query(Response).filter_by(id = id).one()
             question = user_response.question[0]
             user_id = session['identity'].uid
@@ -255,7 +255,7 @@ class BlogController(BaseController):
 
     def response_insert(self):
         '''functional method'''
-        meta.Session.begin()
+        meta.Session.begin_nested()
         
         user = meta.Session.query(User).filter_by(username = session['identity'].username).one()
         
