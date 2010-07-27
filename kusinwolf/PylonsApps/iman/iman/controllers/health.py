@@ -98,13 +98,18 @@ class HealthController(BaseController):
     def weight_add(self):
         '''functional method'''
         
-        meta.Session.begin_nested()
-        meta.Session.save(
-            Weight(weight = float(request.POST.get("weight")),
-                 user_id = int(session['identity'].uid),
-                 units = int(request.POST.get("unit")))
-            )
-        meta.Session.commit()
+        c.failed = ""
+        
+        try:
+            meta.Session.begin_nested()
+            meta.Session.save(
+                Weight(weight = float(request.POST.get("weight")),
+                     user_id = int(session['identity'].uid),
+                     units = int(request.POST.get("unit")))
+                )
+            meta.Session.commit()
+        except:
+            c.failed = "Oops sorry, something happened and we could not save your information, please try again"
         
         return redirect_to(action="index")
     
