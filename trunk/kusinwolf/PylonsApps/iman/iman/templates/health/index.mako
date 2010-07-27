@@ -15,6 +15,11 @@ ${h.form(h.url_for(action="weight_add"), method="post")}
     ${h.submit("Submit", "Add Weight")}<br />
 ${h.end_form()}
 
+% if c.failed:
+    <h4>${c.failed}</h4>
+    <br />
+% endif
+
 <br />
 % if c.last_weight:
     <h2>Your Last Weight was ${c.last_weight.weight} ${c.last_weight.unit.digest}</h2>
