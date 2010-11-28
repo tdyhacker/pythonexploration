@@ -1,0 +1,3 @@
+include routing/config/deployment.ini_tmpl
+recursive-include routing/public *
+recursive-include routing/templates *
