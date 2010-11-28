@@ -1,16 +1,16 @@
-This file is for you to describe the Routing application. Typically
+This file is for you to describe the Nodes application. Typically
 you would include information such as the information below:
 
 Installation and Setup
 ======================
 
-Install ``Routing`` using easy_install::
+Install ``Nodes`` using easy_install::
 
-    easy_install Routing
+    easy_install Nodes
 
 Make a config file as follows::
 
-    paster make-config Routing config.ini
+    paster make-config Nodes config.ini
 
 Tweak the config file as appropriate and then setup the application::
 

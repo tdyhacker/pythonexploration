@@ -3,12 +3,12 @@ import logging
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 
-from routing.lib.base import BaseController, render
+from nodes.lib.base import BaseController, render
 
 from visual import *
 from random import randrange, seed
 from datetime import datetime
-from routing.model.Database import DB
+from nodes.model.Database import DB
 
 log = logging.getLogger(__name__)
 
@@ -79,4 +79,4 @@ class PresentationController(BaseController):
                 del goober
                 secondnum=secondnum+1
             firstnum=firstnum+1
-            secondnum=firstnum+1'
+            secondnum=firstnum+1
