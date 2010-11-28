@@ -6,7 +6,7 @@ from pylons.controllers.util import forward
 from pylons.middleware import error_document_template
 from webhelpers.html.builder import literal
 
-from routing.lib.base import BaseController
+from nodes.lib.base import BaseController
 
 class ErrorController(BaseController):
 

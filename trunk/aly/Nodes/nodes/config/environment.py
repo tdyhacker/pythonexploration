@@ -6,10 +6,10 @@ from pylons import config
 from pylons.error import handle_mako_error
 from sqlalchemy import engine_from_config
 
-import routing.lib.app_globals as app_globals
-import routing.lib.helpers
-from routing.config.routing import make_map
-from routing.model import init_model
+import nodes.lib.app_globals as app_globals
+import nodes.lib.helpers
+from nodes.config.routing import make_map
+from nodes.model import init_model
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -23,11 +23,11 @@ def load_environment(global_conf, app_conf):
                  templates=[os.path.join(root, 'templates')])
 
     # Initialize config with the basic options
-    config.init_app(global_conf, app_conf, package='routing', paths=paths)
+    config.init_app(global_conf, app_conf, package='nodes', paths=paths)
 
     config['routes.map'] = make_map()
     config['pylons.app_globals'] = app_globals.Globals()
-    config['pylons.h'] = routing.lib.helpers
+    config['pylons.h'] = nodes.lib.helpers
 
     # Create the Mako TemplateLookup, with the default auto-escaping
     config['pylons.app_globals'].mako_lookup = TemplateLookup(

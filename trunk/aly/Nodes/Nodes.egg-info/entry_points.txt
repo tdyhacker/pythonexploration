@@ -1,6 +1,6 @@
 
     [paste.app_factory]
-    main = routing.config.middleware:make_app
+    main = nodes.config.middleware:make_app
 
     [paste.app_install]
     main = pylons.util:PylonsInstaller
